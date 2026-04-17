@@ -1,0 +1,3272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BarMS Pro — Bar Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C8931A;--gold-lt:#FEF7E8;--gold-mid:#F5D98A;
+  --green:#0EA875;--green-lt:#E0FAF2;
+  --red:#F05C7A;--red-lt:#FEE8ED;
+  --orange:#FF8C42;--orange-lt:#FFF0E6;
+  --cyan:#0BBCD4;--cyan-lt:#E0F8FC;
+  --blue:#5B7CFA;--blue-lt:#EEF1FF;
+  --purple:#8B5CF6;--purple-lt:#F0EBFF;
+  --pink:#EC4899;--pink-lt:#FDE8F3;
+  --bg:#F0F0FF;--card:rgba(255,255,255,0.75);
+  --text:#2D1B69;--muted:#7C6FA0;--faint:#C4B8DC;
+  --border:rgba(139,92,246,0.15);--border-dk:rgba(139,92,246,0.3);
+  --shadow:0 4px 24px rgba(139,92,246,.1),0 1px 4px rgba(0,0,0,.05);
+  --shadow-md:0 8px 32px rgba(139,92,246,.15),0 2px 8px rgba(0,0,0,.08);
+  --r:16px;--r-sm:10px;
+  --grad-main:linear-gradient(135deg,#667eea 0%,#764ba2 40%,#f093fb 100%);
+  --grad-sidebar:linear-gradient(170deg,#1E3A8A 0%,#2563EB 30%,#5B7CFA 55%,#C4B5FD 80%,#EDE9FE 100%);
+}
+
+body{
+  font-family:'DM Sans',sans-serif;color:var(--text);font-size:14px;overflow:hidden;height:100vh;
+  background:linear-gradient(135deg,#e0e7ff 0%,#f3e8ff 30%,#fce7f3 60%,#e0f2fe 100%);
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(ellipse at 15% 20%,rgba(139,92,246,.25) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 10%,rgba(236,72,153,.2) 0%,transparent 50%),
+    radial-gradient(ellipse at 70% 80%,rgba(91,124,250,.2) 0%,transparent 55%),
+    radial-gradient(ellipse at 10% 85%,rgba(11,188,212,.15) 0%,transparent 50%);
+}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh}
+.sidebar{
+  width:220px;min-width:220px;
+  background:var(--grad-sidebar);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:4px 0 24px rgba(107,70,193,.3);
+}
+.sidebar-nav{flex:1;overflow-y:auto;overflow-x:hidden}
+.sidebar-nav::-webkit-scrollbar{width:3px}
+.sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.content{flex:1;overflow-y:auto;padding:24px;position:relative;z-index:1}
+
+/* ── SIDEBAR ── */
+.sb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.2)}
+.sb-logo h1{font-size:19px;font-weight:800;color:#fff;letter-spacing:.3px;text-shadow:0 1px 4px rgba(0,0,0,.2)}
+.sb-logo p{font-size:9px;color:rgba(255,255,255,.65);margin-top:3px;letter-spacing:.1em;text-transform:uppercase}
+.sb-user{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.15);cursor:pointer}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#60A5FA,#2563EB);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.sb-user-info p{font-size:12px;font-weight:700;color:#fff}
+.sb-user-info span{font-size:10px;color:rgba(219,234,254,.8)}
+.sb-section{padding:14px 10px 4px}
+.sb-label{font-size:8px;font-weight:700;color:rgba(219,234,254,.55);letter-spacing:.12em;padding:0 8px;margin-bottom:6px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:500;color:rgba(219,234,254,.8);transition:all .2s;position:relative;margin:1px 0}
+.nav-item:hover{background:rgba(255,255,255,.18);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.25);color:#1E3A8A;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:#1E3A8A;border-radius:0 3px 3px 0}
+.nav-icon{width:20px;text-align:center;font-size:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:#F05C7A;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center}
+.sb-bottom{padding:12px 10px;border-top:1px solid rgba(255,255,255,.15);flex-shrink:0}
+.nav-item-logout{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;cursor:pointer;font-size:13px;font-weight:700;color:#4C1D95;transition:all .2s;background:rgba(196,181,253,.3);border:1px solid rgba(167,139,250,.4)}
+.nav-item-logout:hover{background:rgba(167,139,250,.45);color:#3B0764;border-color:rgba(139,92,246,.5)}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:rgba(255,255,255,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(139,92,246,.1);padding:0 24px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  position:relative;z-index:100;
+}
+.topbar-left h2{font-size:18px;font-weight:800;color:var(--text)}
+.topbar-left p{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;box-shadow:0 4px 12px rgba(139,92,246,.35)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,92,246,.45)}
+.btn-green{background:linear-gradient(135deg,#10B981,#059669);color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.3)}
+.btn-green:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(16,185,129,.4)}
+.btn-red{background:linear-gradient(135deg,#F05C7A,#E11D48);color:#fff;box-shadow:0 4px 12px rgba(240,92,122,.3)}
+.btn-red:hover{transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.7);color:var(--muted);border:1px solid var(--border);backdrop-filter:blur(8px)}
+.btn-ghost:hover{background:rgba(255,255,255,.95);color:var(--text);border-color:var(--purple)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-icon{width:36px;height:36px;padding:0;justify-content:center;border-radius:var(--r-sm);background:rgba(255,255,255,.7);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;backdrop-filter:blur(8px)}
+.btn-icon:hover{background:rgba(255,255,255,.95);color:var(--purple)}
+
+/* ── CARDS ── */
+.card{
+  background:rgba(255,255,255,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.8);
+  padding:20px;box-shadow:var(--shadow);
+}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;color:var(--text)}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.kpi{
+  background:rgba(255,255,255,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:16px;padding:16px 18px;
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 4px 20px rgba(139,92,246,.1),0 1px 4px rgba(0,0,0,.04);
+  position:relative;overflow:hidden;cursor:default;
+  transition:transform .2s,box-shadow .2s;
+}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(139,92,246,.18)}
+.kpi::after{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;opacity:.08}
+.kpi-gold::after{background:#F59E0B}
+.kpi-green::after{background:#10B981}
+.kpi-red::after{background:#F05C7A}
+.kpi-cyan::after{background:#0BBCD4}
+.kpi-blue::after{background:#5B7CFA}
+.kpi-orange::after{background:#FF8C42}
+.kpi-purple::after{background:#8B5CF6}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:16px 0 0 16px}
+.kpi-gold::before{background:linear-gradient(180deg,#FCD34D,#F59E0B)}
+.kpi-green::before{background:linear-gradient(180deg,#34D399,#10B981)}
+.kpi-red::before{background:linear-gradient(180deg,#FB7185,#F05C7A)}
+.kpi-cyan::before{background:linear-gradient(180deg,#22D3EE,#0BBCD4)}
+.kpi-blue::before{background:linear-gradient(180deg,#818CF8,#5B7CFA)}
+.kpi-orange::before{background:linear-gradient(180deg,#FB923C,#FF8C42)}
+.kpi-purple::before{background:linear-gradient(180deg,#A78BFA,#8B5CF6)}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.kpi-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.kpi-gold .kpi-icon{background:linear-gradient(135deg,#FEF3C7,#FDE68A);box-shadow:0 4px 10px rgba(245,158,11,.2)}
+.kpi-green .kpi-icon{background:linear-gradient(135deg,#D1FAE5,#6EE7B7);box-shadow:0 4px 10px rgba(16,185,129,.2)}
+.kpi-red .kpi-icon{background:linear-gradient(135deg,#FFE4E6,#FECDD3);box-shadow:0 4px 10px rgba(240,92,122,.2)}
+.kpi-cyan .kpi-icon{background:linear-gradient(135deg,#CFFAFE,#A5F3FC);box-shadow:0 4px 10px rgba(11,188,212,.2)}
+.kpi-blue .kpi-icon{background:linear-gradient(135deg,#E0E7FF,#C7D2FE);box-shadow:0 4px 10px rgba(91,124,250,.2)}
+.kpi-orange .kpi-icon{background:linear-gradient(135deg,#FEF3C7,#FED7AA);box-shadow:0 4px 10px rgba(255,140,66,.2)}
+.kpi-purple .kpi-icon{background:linear-gradient(135deg,#EDE9FE,#DDD6FE);box-shadow:0 4px 10px rgba(139,92,246,.2)}
+.kpi-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.kpi-value{font-size:20px;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;letter-spacing:-.5px;line-height:1.2}
+.kpi-note{font-size:10px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:4px}
+.kpi-note.up{color:var(--green)}
+.kpi-note.down{color:var(--red)}
+.kpi-divider{height:1px;background:var(--border);margin:8px 0;opacity:.5}
+
+/* ── GRIDS & TABLES ── */
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:11px;font-weight:700;color:var(--muted);text-align:left;padding:10px 14px;background:rgba(139,92,246,.05);border-bottom:1px solid var(--border);letter-spacing:.03em;text-transform:uppercase}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:rgba(139,92,246,.04)}
+tbody tr:last-child{border-bottom:none}
+td{padding:12px 14px;font-size:13px;color:var(--text)}
+td.muted{color:var(--muted)}
+td.mono{font-family:'DM Mono',monospace;font-size:12px}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-lt);color:var(--green)}
+.badge-red{background:var(--red-lt);color:var(--red)}
+.badge-orange{background:var(--orange-lt);color:var(--orange)}
+.badge-gold{background:var(--gold-lt);color:#92650A}
+.badge-blue{background:var(--blue-lt);color:var(--blue)}
+.badge-cyan{background:var(--cyan-lt);color:var(--cyan)}
+.badge-purple{background:var(--purple-lt);color:var(--purple)}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:16px}
+.form-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;display:block;letter-spacing:.03em;text-transform:uppercase}
+.form-input{
+  width:100%;padding:10px 14px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-size:13px;font-family:inherit;color:var(--text);
+  background:rgba(255,255,255,.8);transition:all .2s;outline:none;
+  backdrop-filter:blur(8px);
+}
+.form-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12);background:#fff}
+.form-input::placeholder{color:var(--faint)}
+select.form-input{cursor:pointer}
+.form-row{display:grid;gap:14px}
+.form-row.cols-2{grid-template-columns:1fr 1fr}
+.form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.form-panel{
+  background:rgba(255,255,255,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.85);
+  padding:20px;box-shadow:var(--shadow);margin-bottom:16px;
+}
+.form-panel-title{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:rgba(139,92,246,.08);border-radius:var(--r-sm);padding:3px;border:1px solid var(--border);width:fit-content;margin-bottom:16px}
+.tab{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .2s}
+.tab.active{background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;box-shadow:0 2px 8px rgba(139,92,246,.3)}
+
+/* ── STOCK BAR ── */
+.stock-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px}
+.stock-fill{height:100%;border-radius:3px;transition:width .3s}
+
+/* ── CHART BARS ── */
+.chart-wrap{display:flex;align-items:flex-end;gap:6px;height:100px;padding-top:10px}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;transition:height .5s;min-height:2px}
+.chart-lbl{font-size:9px;color:var(--muted);text-align:center}
+
+/* ── LOGIN ── */
+.login-wrap{
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:var(--grad-main);
+  position:fixed;inset:0;z-index:100;padding:16px;
+}
+.login-card{
+  background:rgba(255,255,255,.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-radius:24px;padding:40px 36px;width:400px;
+  box-shadow:0 24px 64px rgba(107,70,193,.35),0 0 0 1px rgba(255,255,255,.5);
+}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo h1{font-size:26px;font-weight:800;background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.3px}
+.login-logo p{font-size:12px;color:var(--muted);margin-top:4px}
+.role-pills{display:flex;gap:8px;margin-bottom:20px}
+.role-pill{flex:1;padding:9px;border-radius:var(--r-sm);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);transition:all .2s;background:rgba(255,255,255,.6)}
+.role-pill.active{border-color:var(--purple);background:var(--purple-lt);color:var(--purple)}
+
+/* ── NOTIFICATION DOT ── */
+.notif-dot{width:8px;height:8px;background:var(--red);border-radius:50%;position:absolute;top:5px;right:5px;box-shadow:0 0 0 2px #fff}
+
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── VOID ── */
+.void-row td{text-decoration:line-through;color:var(--faint)!important;opacity:.6}
+
+/* ── QUICK SALE ITEMS ── */
+.qs-item{display:flex;align-items:center;gap:10px;padding:12px;background:rgba(139,92,246,.05);border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:8px}
+.qs-item:last-child{margin-bottom:0}
+.qs-name{flex:1;font-size:13px;font-weight:600;color:var(--text)}
+.qs-qty{width:70px}
+.qs-price{width:100px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);text-align:right}
+.qs-remove{color:var(--red);cursor:pointer;font-size:16px;padding:0 4px}
+
+/* ── NOTIF PANEL ── */
+.notif-panel{position:fixed;right:20px;top:68px;width:340px;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.9);border-radius:var(--r);box-shadow:0 20px 60px rgba(45,27,105,.25),0 4px 16px rgba(0,0,0,.1);z-index:9999;display:none;max-height:80vh;overflow-y:auto}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.notif-item:last-child{border-bottom:none}
+.notif-dot2{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.notif-text{font-size:12px;color:var(--text);line-height:1.5}
+.notif-time{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(45,27,105,.35);backdrop-filter:blur(4px);z-index:90;display:none;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-radius:20px;padding:32px;width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 64px rgba(107,70,193,.25)}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:20px;color:var(--text)}
+
+/* ── POPUP NOTIFICATION TOAST ── */
+.notif-popup{
+  position:fixed;top:76px;right:20px;z-index:999;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:14px;box-shadow:0 8px 32px rgba(139,92,246,.2),0 0 0 1px rgba(255,255,255,.8);
+  padding:14px 16px;min-width:300px;max-width:360px;
+  display:flex;gap:12px;align-items:flex-start;
+  animation:slideInRight .35s cubic-bezier(.2,.8,.4,1);
+  border-left:4px solid var(--purple);
+}
+.notif-popup.fraud{border-left-color:var(--red);background:rgba(255,240,244,.95)}
+.notif-popup.warning{border-left-color:var(--orange)}
+.notif-popup.success{border-left-color:var(--green)}
+.notif-popup-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.notif-popup-body p{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.notif-popup-body span{font-size:11px;color:var(--muted)}
+.notif-popup-close{margin-left:auto;cursor:pointer;font-size:16px;color:var(--faint);flex-shrink:0;padding:0 0 0 8px}
+.notif-popup-close:hover{color:var(--text)}
+@keyframes slideInRight{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+.fraud-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:var(--red-lt);color:var(--red)}
+
+/* ── BARTENDER BIG UI ── */
+body.bartender-mode .form-input{font-size:17px;padding:14px 16px;border-radius:12px}
+body.bartender-mode .btn{font-size:16px;padding:14px 24px;border-radius:12px}
+body.bartender-mode .form-label{font-size:13px;margin-bottom:8px}
+body.bartender-mode .form-panel-title{font-size:18px}
+body.bartender-mode td{font-size:15px;padding:14px}
+body.bartender-mode thead th{font-size:13px;padding:12px 14px}
+body.bartender-mode .kpi-value{font-size:26px}
+body.bartender-mode .kpi-label{font-size:11px}
+body.bartender-mode .kpi{padding:18px 20px}
+body.bartender-mode select.form-input{font-size:16px}
+
+/* ── AUDIT LOG BADGE ── */
+.badge-purple{background:var(--purple-lt);color:var(--purple)}
+.section-gap{margin-bottom:16px}
+hr.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:7px;border-radius:var(--r-sm);background:rgba(255,255,255,.7);border:1px solid var(--border)}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(45,27,105,.4);backdrop-filter:blur(2px);z-index:39}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+@media(max-width:1024px){
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-2{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .form-row.cols-4{grid-template-columns:1fr 1fr}
+  .form-row.cols-3{grid-template-columns:1fr 1fr}
+  .topbar-left p{display:none}
+}
+@media(max-width:768px){
+  body{overflow:auto;height:auto}
+  .app{flex-direction:column;height:auto;min-height:100vh}
+  .sidebar{position:fixed;left:-240px;top:0;bottom:0;z-index:40;width:240px;min-width:240px;transition:left .25s ease}
+  .sidebar.open{left:0;box-shadow:8px 0 32px rgba(107,70,193,.4)}
+  .sidebar-overlay.show{display:block}
+  .main{width:100%;min-height:100vh}
+  .topbar{padding:0 14px;height:56px;position:sticky;top:0;z-index:30}
+  .topbar-left h2{font-size:15px}
+  .topbar-left p{display:none}
+  .topbar-right{gap:6px}
+  .topbar-right .btn-ghost{display:none}
+  .hamburger{display:flex}
+  .content{padding:14px;overflow-y:visible}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+  .kpi-value{font-size:16px}
+  .kpi{padding:12px 14px}
+  .grid-2,.grid-3{grid-template-columns:1fr;gap:12px}
+  .form-row.cols-2,.form-row.cols-3,.form-row.cols-4{grid-template-columns:1fr}
+  .form-panel{padding:14px}
+  table{min-width:520px}
+  .card,.form-panel{overflow-x:auto}
+  .tabs{width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .tab{white-space:nowrap}
+  .modal{width:calc(100vw - 32px);padding:20px;margin:16px}
+  .notif-panel{right:8px;width:calc(100vw - 16px)}
+  #reportDateWrap{flex-wrap:wrap}
+  .login-card{width:calc(100vw - 32px);padding:28px 20px}
+  #pageDate{display:none}
+  .btn-sm{padding:5px 8px;font-size:11px}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr}
+  .role-pills{flex-direction:column}
+  .topbar-right .btn-primary{font-size:11px;padding:5px 10px}
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>🍺 BarMS Pro</h1>
+      <p>Bar Management System — Rwanda 🇷🇼</p>
+    </div>
+    <div class="role-pills">
+      <div class="role-pill active" onclick="setRole('Owner',this)">👑 Owner</div>
+      <div class="role-pill" onclick="setRole('Manager',this)">📋 Manager</div>
+      <div class="role-pill" onclick="setRole('Bartender',this)">🍺 Bartender</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="loginUser" placeholder="e.g. owner" value="owner"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="loginPass" placeholder="••••••••" value="admin"/>
+    </div>
+    <div id="loginErr" style="color:var(--red);font-size:12px;margin-bottom:10px;display:none">❌ Invalid credentials. Try again.</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="doLogin()">Sign In →</button>
+    <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--muted)">Demo: owner / admin · manager / manager123 · bartender1 / bar123</p>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div class="app" id="appShell" style="display:none">
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <h1>🍺 BarMS Pro</h1>
+      <p>RWANDA BAR MANAGEMENT</p>
+    </div>
+    <div class="sb-user" onclick="showUserAccessInfo()">
+      <div class="sb-avatar" id="avatarTxt">OW</div>
+      <div class="sb-user-info">
+        <p id="sidebarName">Owner</p>
+        <span id="sidebarRole">Owner</span>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+    <div class="sb-section">
+      <div class="sb-label">Main</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" id="nav-sales" onclick="showPage('sales')"><span class="nav-icon">🛒</span> Sales / Kugurisha</div>
+      <div class="nav-item" id="nav-quicksale" onclick="showPage('quicksale')"><span class="nav-icon">⚡</span> Quick Sale</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Management</div>
+      <div class="nav-item" id="nav-stock" onclick="showPage('stock')"><span class="nav-icon">📦</span> Stock Control</div>
+      <div class="nav-item" id="nav-products" onclick="showPage('products')"><span class="nav-icon">📋</span> Products</div>
+      <div class="nav-item" id="nav-expenses" onclick="showPage('expenses')"><span class="nav-icon">💸</span> Expenses</div>
+      <div class="nav-item" id="nav-kitchen" onclick="showPage('kitchen')"><span class="nav-icon">🍳</span> Kitchen</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Reports & People</div>
+      <div class="nav-item" id="nav-reports" onclick="showPage('reports')"><span class="nav-icon">📈</span> Reports</div>
+      <div class="nav-item" id="nav-charts" onclick="showPage('charts')"><span class="nav-icon">📉</span> Charts</div>
+      <div class="nav-item" id="nav-employees" onclick="showPage('employees')"><span class="nav-icon">👥</span> Employees</div>
+      <div class="nav-item" id="nav-custdebts" onclick="showPage('custdebts')"><span class="nav-icon">💳</span> Customer Debts</div>
+      <div class="nav-item" id="nav-voidreqs" onclick="showPage('voidreqs')" style="position:relative"><span class="nav-icon">🚫</span> Void Requests<span class="nav-badge" id="voidReqBadge" style="display:none">0</span></div>
+      <div class="nav-item" id="nav-audit" onclick="showPage('audit')"><span class="nav-icon">📋</span> Audit Log</div>
+      <div class="nav-item" id="nav-settings" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Settings</div>
+    </div>
+    </div>
+    <div class="sb-bottom">
+      <div class="nav-item-logout" onclick="doLogout()"><span class="nav-icon">🔓</span> Gusohoka / Logout</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left" style="display:flex;align-items:center;gap:12px">
+        <div class="hamburger" onclick="toggleSidebar()" id="hamburgerBtn">
+          <span></span><span></span><span></span>
+        </div>
+        <div>
+          <h2 id="pageTitle">Dashboard</h2>
+          <p id="pageDate"></p>
+        </div>
+      </div>
+      <div class="topbar-right" style="position:relative">
+        <button class="btn btn-ghost btn-sm" onclick="showSummary()">📋 End of Day</button>
+        <button class="btn btn-ghost btn-sm" onclick="showSearch()">🔍 Search</button>
+        <button class="btn-icon" onclick="toggleNotif()" style="position:relative">
+          🔔
+          <span class="notif-dot" id="notifDot"></span>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="showPage('quicksale')">+ Quick Sale</button>
+
+        <!-- NOTIF PANEL -->
+        <div class="notif-panel" id="notifPanel">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;font-weight:700">Notifications</span>
+            <span style="font-size:11px;color:var(--gold);cursor:pointer" onclick="markAllRead()">Mark all read</span>
+          </div>
+          <div id="notifList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="mainContent">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="kpi-grid" id="kpiRow1"></div>
+        <div class="kpi-grid" id="kpiRow2"></div>
+        <!-- Cash Flow Summary -->
+        <div class="card" id="cashFlowCard" style="margin-bottom:16px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">💰 Today's Cash Flow</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Money In vs Money Out — real-time snapshot</div>
+            </div>
+            <span class="badge badge-blue" id="cashFlowStatus">Loading…</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px" id="cashFlowGrid"></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">📊 Monthly Sales — Last 6 Months</div></div>
+            </div>
+            <div class="chart-wrap" id="monthlyChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">⚠️ Low Stock Alerts</div><span class="badge badge-red" id="lowStockCount">0</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Product</th><th>Stock</th><th>Alert</th><th>Status</th></tr></thead>
+            <tbody id="lowStockBody"></tbody></table></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🛒 Today's Sales Activity</div>
+            <span class="badge badge-green" id="todayTxCount">0 transactions</span>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Time</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Sold By</th></tr></thead>
+          <tbody id="todaySalesBody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── SALES ── -->
+      <div class="page" id="page-sales">
+        <div class="form-panel">
+          <div class="form-panel-title">🛒 KUGURISHA — Record Sale</div>
+          <div class="form-row cols-3">
+            <div class="form-group" style="grid-column:1/3">
+              <label class="form-label">Product / Igicuruzwa</label>
+              <select class="form-input" id="saleProduct" onchange="onSaleProductChange()"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price & Stock</label>
+              <div style="padding:10px 13px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border)">
+                <div style="font-size:13px;font-weight:700;color:var(--cyan)" id="salePriceInfo">—</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px" id="saleStockInfo">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">Quantity / Ingano</label>
+              <input type="number" class="form-input" id="saleQty" value="1" min="1" oninput="updateSaleTotal()"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total / Amafaranga Yose</label>
+              <div style="padding:10px 13px;background:var(--gold-lt);border-radius:var(--r-sm);border:1px solid var(--gold-mid);font-size:18px;font-weight:700;color:var(--gold);font-family:'DM Mono',monospace" id="saleTotalDisplay">RWF 0</div>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end">
+              <button class="btn btn-green" style="width:100%;justify-content:center;padding:11px" onclick="recordSale()">✓ KUGURISHA — SELL</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Sales History / Ibyagurishijwe</div>
+            <div class="tabs">
+              <div class="tab active" onclick="loadSalesHistory(0,this)">Today</div>
+              <div class="tab" onclick="loadSalesHistory(1,this)">This Week</div>
+              <div class="tab" onclick="loadSalesHistory(2,this)">This Month</div>
+            </div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Sold By</th><th>Action</th></tr></thead>
+          <tbody id="salesHistoryBody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── QUICK SALE ── -->
+      <div class="page" id="page-quicksale">
+        <div class="grid-2">
+          <div class="form-panel">
+            <div class="form-panel-title">⚡ Quick Sale — Add Items</div>
+            <div class="form-row cols-2">
+              <div class="form-group">
+                <label class="form-label">Product</label>
+                <select class="form-input" id="qsProduct"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Quantity</label>
+                <input type="number" class="form-input" id="qsQty" value="1" min="1"/>
+              </div>
+            </div>
+            <button class="btn btn-ghost" onclick="addQsItem()" style="width:100%;justify-content:center;margin-bottom:16px">+ Add Item to Order</button>
+            <div id="qsItems"><p style="text-align:center;color:var(--muted);font-size:13px;padding:20px 0">No items added yet</p></div>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column">
+            <div class="card-title" style="margin-bottom:16px">🧾 Order Summary</div>
+            <div id="qsSummary" style="flex:1"></div>
+            <hr class="divider"/>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px"><span>Subtotal</span><span id="qsSubtotal" class="mono">RWF 0</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;margin-bottom:16px"><span>Total</span><span id="qsTotal" class="mono" style="color:var(--green)">RWF 0</span></div>
+            <button class="btn btn-green" style="width:100%;justify-content:center;padding:12px" onclick="processQuickSale()">✓ Emeza Kugurisha — Confirm Sale</button>
+            <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="clearQsItems()">Clear Order</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STOCK ── -->
+      <div class="page" id="page-stock">
+        <div class="form-panel">
+          <div class="form-panel-title">📦 STOCK MOVEMENT — Kwinjiza / Gukuraho</div>
+          <div class="form-row cols-4">
+            <div class="form-group" style="grid-column:1/3">
+              <label class="form-label">Product</label>
+              <select class="form-input" id="stockProduct" onchange="onStockProductChange()"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Movement Type</label>
+              <select class="form-input" id="stockType">
+                <option value="IN">📥 IN — Add Stock</option>
+                <option value="OUT">📤 OUT — Remove Stock</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Current Stock</label>
+              <div style="padding:10px 13px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border);font-weight:700;font-size:14px;color:var(--green)" id="stockCurrentInfo">—</div>
+            </div>
+          </div>
+          <div class="form-row cols-4">
+            <div class="form-group">
+              <label class="form-label">Quantity</label>
+              <input type="number" class="form-input" id="stockQty" value="1" min="1"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cost/Unit RWF (IN only)</label>
+              <input type="number" class="form-input" id="stockCost" value="0" min="0"/>
+            </div>
+            <div class="form-group" style="grid-column:3/5">
+              <label class="form-label">Note / Reason</label>
+              <input class="form-input" id="stockNote" placeholder="e.g. Restocked from supplier..."/>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="recordStock()">📥 RECORD MOVEMENT</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Stock Overview — Summary & Recent Movements</div>
+            <input class="form-input" style="width:200px;padding:7px 12px" placeholder="Search product…" oninput="filterStockTable(this.value)" id="stockSearchInput"/>
+          </div>
+          <div class="table-wrap"><table><thead><tr>
+            <th>Product</th><th>Category</th>
+            <th style="color:var(--text)">Current Stock</th>
+            <th style="color:var(--green)">▲ Total IN</th>
+            <th style="color:var(--red)">▼ Total OUT</th>
+            <th>Unit</th><th>Level</th>
+            <th>Last Movement</th><th>Last Date</th>
+          </tr></thead>
+          <tbody id="stockSummaryBody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTS ── -->
+      <div class="page" id="page-products">
+        <div class="form-panel">
+          <div class="form-panel-title" id="productFormTitle">📋 ADD PRODUCT — Click any row in the table to edit</div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">Product Name *</label>
+              <input class="form-input" id="pName" placeholder="e.g. Primus Beer"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <input class="form-input" id="pCategory" value="Beer" placeholder="Beer, Food, Spirits…"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unit</label>
+              <input class="form-input" id="pUnit" value="Bottle" placeholder="Bottle, Plate, Glass…"/>
+            </div>
+          </div>
+          <div class="form-row cols-4">
+            <div class="form-group">
+              <label class="form-label">Sell Price (RWF) *</label>
+              <input type="number" class="form-input" id="pSellPrice" value="0" min="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cost Price (RWF)</label>
+              <input type="number" class="form-input" id="pCostPrice" value="0" min="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Initial Stock</label>
+              <input type="number" class="form-input" id="pStock" value="0" min="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Low Stock Alert</label>
+              <input type="number" class="form-input" id="pAlert" value="5" min="0"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary" id="pSaveBtn" onclick="saveProduct()">💾 SAVE PRODUCT</button>
+            <button class="btn btn-ghost" onclick="clearProductForm()">✕ Clear</button>
+          </div>
+          <div id="pStatus" style="margin-top:10px;font-size:12px"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📦 All Products</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="form-input" style="width:200px;padding:7px 12px" placeholder="Search products…" oninput="filterProducts(this.value)"/>
+            </div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Name</th><th>Category</th><th>Unit</th><th>Sell Price</th><th>Cost Price</th><th>Stock</th><th>Alert</th><th>Actions</th></tr></thead>
+          <tbody id="productsBody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── EXPENSES ── -->
+      <div class="page" id="page-expenses">
+        <div class="form-panel">
+          <div class="form-panel-title">💸 RECORD EXPENSE</div>
+          <div class="form-row cols-3">
+            <div class="form-group" style="grid-column:1/3">
+              <label class="form-label">Description *</label>
+              <input class="form-input" id="expDesc" placeholder="e.g. Electricity bill, cleaning supplies…"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="form-input" id="expCategory">
+                <option>General</option><option>Utilities</option><option>Cleaning</option>
+                <option>Transport</option><option>Food/Kitchen</option><option>Maintenance</option>
+                <option>Marketing</option><option>Security</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label class="form-label">Amount (RWF) *</label>
+              <input type="number" class="form-input" id="expAmount" value="0" min="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="expDate"/>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end">
+              <button class="btn btn-orange" style="background:var(--orange);color:#fff;width:100%;justify-content:center;padding:11px" onclick="saveExpense()">💾 RECORD EXPENSE</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Expense History</div>
+            <div style="font-size:13px;font-weight:700;color:var(--red)">Total this month: <span id="expMonthTotal" class="mono">RWF 0</span></div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Recorded By</th><th>Action</th></tr></thead>
+          <tbody id="expensesBody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── KITCHEN MODULE ── -->
+      <div class="page" id="page-kitchen">
+        <!-- KPI row -->
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:20px" id="kitKpiRow"></div>
+
+        <div class="tabs">
+          <div class="tab active" onclick="showKitTab('revenue',this)">💰 Daily Revenue</div>
+          <div class="tab" onclick="showKitTab('expenses',this)">💸 Kitchen Expenses</div>
+          <div class="tab" onclick="showKitTab('profit',this)">📈 P&amp;L Report</div>
+        </div>
+
+        <!-- Revenue tab -->
+        <div id="kitTab-revenue">
+          <div class="form-panel">
+            <div class="form-panel-title">💰 Record Daily Kitchen Revenue</div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Enter the total revenue collected by the kitchen for the day — no need to break down by item.</p>
+            <div class="form-row cols-3">
+              <div class="form-group">
+                <label class="form-label">Total Daily Revenue (RWF) *</label>
+                <input type="number" class="form-input" id="kitRevAmount" value="0" min="0" style="font-size:18px;font-weight:700"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-input" id="kitRevDate"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Note (optional)</label>
+                <input class="form-input" id="kitRevNote" placeholder="e.g. Busy lunch service…"/>
+              </div>
+            </div>
+            <button class="btn btn-cyan" style="background:var(--cyan);color:#fff" onclick="saveKitRevenue()">💾 RECORD REVENUE</button>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📋 Kitchen Revenue History</div>
+              <div style="font-size:13px;font-weight:700;color:var(--cyan)">This month: <span id="kitRevMonthTotal" class="mono">RWF 0</span></div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Total Revenue</th><th>Note</th><th>Recorded By</th><th></th></tr></thead>
+            <tbody id="kitRevenueBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- Expenses tab -->
+        <div id="kitTab-expenses" style="display:none">
+          <div class="form-panel">
+            <div class="form-panel-title">💸 Record Kitchen Expense</div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Kitchen-specific costs only — cooking gas, ingredients, kitchen supplies, etc.</p>
+            <div class="form-row cols-3">
+              <div class="form-group" style="grid-column:1/3">
+                <label class="form-label">Description *</label>
+                <input class="form-input" id="kitExpDesc" placeholder="e.g. Cooking gas refill, tomatoes bulk purchase…"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="kitExpCategory">
+                  <option>Ingredients</option><option>Cooking Gas</option><option>Kitchen Supplies</option>
+                  <option>Equipment</option><option>Cleaning</option><option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row cols-3">
+              <div class="form-group">
+                <label class="form-label">Amount (RWF) *</label>
+                <input type="number" class="form-input" id="kitExpAmount" value="0" min="0"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-input" id="kitExpDate"/>
+              </div>
+              <div class="form-group" style="display:flex;align-items:flex-end">
+                <button class="btn" style="background:var(--orange);color:#fff;width:100%;justify-content:center;padding:11px" onclick="saveKitExpense()">💾 RECORD EXPENSE</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📋 Kitchen Expense History</div>
+              <div style="font-size:13px;font-weight:700;color:var(--red)">This month: <span id="kitExpMonthTotal" class="mono">RWF 0</span></div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Recorded By</th><th></th></tr></thead>
+            <tbody id="kitExpensesBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- P&L tab -->
+        <div id="kitTab-profit" style="display:none">
+          <div class="form-panel" style="padding:16px 20px">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Period</label>
+                <select class="form-input" id="kitPnlPeriod" onchange="loadKitPnl()" style="width:160px">
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="custom">Custom Date</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;display:none" id="kitPnlDateWrap">
+                <label class="form-label">Pick Date</label>
+                <input type="date" class="form-input" id="kitPnlDate" onchange="loadKitPnl()" style="width:180px"/>
+              </div>
+              <button class="btn btn-primary" style="margin-top:18px" onclick="exportKitchenPDF()">🖨️ Export PDF</button>
+            </div>
+          </div>
+          <div id="kitPnlContent"></div>
+        </div>
+      </div>
+
+      <!-- ── REPORTS ── -->
+      <div class="page" id="page-reports">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px">
+          <div class="tabs" style="margin-bottom:0">
+            <div class="tab active" id="rtab-daily" onclick="switchReportTab('daily',this)">Daily</div>
+            <div class="tab" id="rtab-weekly" onclick="switchReportTab('weekly',this)">Weekly</div>
+            <div class="tab" id="rtab-monthly" onclick="switchReportTab('monthly',this)">Monthly</div>
+          </div>
+          <!-- Date picker — shown for weekly & monthly -->
+          <div id="reportDateWrap" style="display:none;align-items:center;gap:8px">
+            <label class="form-label" style="margin-bottom:0;white-space:nowrap" id="reportDateLabel">Pick a day:</label>
+            <input type="date" class="form-input" id="reportDatePick" style="width:180px" onchange="loadReport()"/>
+          </div>
+          <button class="btn btn-primary" style="margin-left:auto" onclick="exportReportPDF()">🖨️ Export PDF</button>
+        </div>
+        <div id="reportContent"></div>
+      </div>
+
+      <!-- ── CHARTS ── -->
+      <div class="page" id="page-charts">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">📊 Monthly Revenue (Bar Chart)</div>
+            <div class="chart-wrap" id="chartBar1" style="height:160px"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">🥧 Revenue by Category (Pie)</div>
+            <canvas id="pieCanvas" width="300" height="200" style="display:block;margin:0 auto"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">📈 Revenue vs Profit — Last 6 Months (Line Chart)</div>
+          <canvas id="lineCanvas" width="800" height="200" style="width:100%;height:200px"></canvas>
+        </div>
+      </div>
+
+      <!-- ── EMPLOYEES ── -->
+      <div class="page" id="page-employees">
+        <div class="tabs">
+          <div class="tab active" onclick="showEmpTab('list',this)">👤 Employees</div>
+          <div class="tab" onclick="showEmpTab('debts',this)">💳 Debts / Advances</div>
+          <div class="tab" onclick="showEmpTab('salary',this)">💰 Pay Salary</div>
+        </div>
+
+        <div id="empTab-list">
+          <div class="form-panel">
+            <div class="form-panel-title" id="empFormTitle">👤 Add Employee</div>
+            <div class="form-row cols-3">
+              <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="empName"/></div>
+              <div class="form-group"><label class="form-label">Position</label><input class="form-input" id="empPosition" placeholder="Bartender, Waiter…"/></div>
+              <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="empPhone" placeholder="07…"/></div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="form-group"><label class="form-label">Monthly Salary (RWF)</label><input type="number" class="form-input" id="empSalary" value="0" min="0"/></div>
+              <div class="form-group" style="display:flex;align-items:flex-end;gap:8px">
+                <button class="btn btn-primary" onclick="saveEmployee()">💾 Save Employee</button>
+                <button class="btn btn-ghost" onclick="clearEmpForm()">✕ Clear</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">👥 All Employees</div>
+            <div class="table-wrap"><table><thead><tr><th>Name</th><th>Position</th><th>Phone</th><th>Monthly Salary</th><th>Hire Date</th><th>Actions</th></tr></thead>
+            <tbody id="empListBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <div id="empTab-debts" style="display:none">
+          <div class="form-panel">
+            <div class="form-panel-title">💳 Record Debt / Advance</div>
+            <div class="form-row cols-3">
+              <div class="form-group"><label class="form-label">Employee</label><select class="form-input" id="debtEmp"></select></div>
+              <div class="form-group"><label class="form-label">Amount (RWF)</label><input type="number" class="form-input" id="debtAmount" value="0" min="0"/></div>
+              <div class="form-group"><label class="form-label">Note</label><input class="form-input" id="debtNote" placeholder="Advance, loan…"/></div>
+            </div>
+            <button class="btn btn-orange" style="background:var(--orange);color:#fff" onclick="saveDebt()">💾 Record Debt</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">📋 Debt History</div>
+            <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Amount</th><th>Note</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="debtListBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <div id="empTab-salary" style="display:none">
+          <div class="form-panel">
+            <div class="form-panel-title">💰 Pay Salary</div>
+            <div class="form-row cols-3">
+              <div class="form-group"><label class="form-label">Employee</label><select class="form-input" id="payEmp" onchange="onPayEmpChange()"></select></div>
+              <div class="form-group"><label class="form-label">Amount (RWF)</label><input type="number" class="form-input" id="payAmount" value="0" min="0"/></div>
+              <div class="form-group"><label class="form-label">Note</label><input class="form-input" id="payNote" placeholder="April salary, bonus…"/></div>
+            </div>
+            <button class="btn btn-green" onclick="paySalary()">💰 Pay Salary</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">📋 Salary Payment History</div>
+            <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Net Paid</th><th>Deductions</th><th>Note</th><th>Date</th></tr></thead>
+            <tbody id="salaryHistoryBody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div class="page" id="page-settings">
+        <div class="grid-2">
+          <div class="form-panel">
+            <div class="form-panel-title">⚙️ Bar Configuration</div>
+            <div class="form-group"><label class="form-label">Bar Name</label><input class="form-input" id="setBarName" value="BarMS Pro"/></div>
+            <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="setLocation" value="Kigali, Rwanda"/></div>
+            <div class="form-group"><label class="form-label">Currency</label><input class="form-input" id="setCurrency" value="RWF"/></div>
+            <div class="form-group">
+              <label class="form-label">Daily Tax Amount (RWF) <span style="font-size:10px;color:var(--muted);font-weight:400">— deducted like an expense</span></label>
+              <input type="number" class="form-input" id="setTax" value="0" min="0" placeholder="e.g. 5000"/>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+          </div>
+          <div class="form-panel">
+            <div class="form-panel-title">👤 User Management</div>
+            <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newUserName"/></div>
+            <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="newUserUser" placeholder="lowercase, no spaces"/></div>
+            <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="newUserPass"/></div>
+            <div class="form-group"><label class="form-label">Role</label>
+              <select class="form-input" id="newUserRole"><option>Bartender</option><option>Manager</option><option>Owner</option></select>
+            </div>
+            <button class="btn btn-green" onclick="addUser()">➕ Add User</button>
+            <div class="card" style="margin-top:14px;padding:14px">
+              <div class="card-title" style="margin-bottom:10px;font-size:12px">Users</div>
+              <div id="usersList"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Manager Permissions (Owner only) -->
+        <div class="form-panel" id="mgrPermPanel">
+          <div class="form-panel-title">🔑 Manager Permissions <span style="font-size:11px;font-weight:400;color:var(--muted)">— Owner only</span></div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Control what managers can access and do in the system.</p>
+          <div id="mgrPermList"></div>
+        </div>
+        <div class="form-panel">
+          <div class="form-panel-title">🔑 Change My Password</div>
+          <div class="form-row cols-3">
+            <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-input" id="pwdCurrent"/></div>
+            <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="pwdNew"/></div>
+            <div class="form-group" style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="changePassword()">🔑 Change Password</button></div>
+          </div>
+        </div>
+        <div class="form-panel">
+          <div class="form-panel-title">💾 Data Backup & Restore</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Export all your data as a backup file, or restore from a previous backup. Keep regular backups to avoid data loss.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-green" onclick="backupData()">💾 Backup Now — Download JSON</button>
+            <label class="btn btn-ghost" style="cursor:pointer">
+              📂 Restore from Backup
+              <input type="file" accept=".json" style="display:none" onchange="restoreData(this)"/>
+            </label>
+          </div>
+          <div id="backupStatus" style="margin-top:10px;font-size:12px;color:var(--muted)"></div>
+        </div>
+      </div>
+
+      <!-- ── CUSTOMER DEBTS ── -->
+      <div class="page" id="page-custdebts">
+        <div class="form-panel">
+          <div class="form-panel-title">💳 Record Customer Debt</div>
+          <div class="form-row cols-4">
+            <div class="form-group"><label class="form-label">Customer Name *</label><input class="form-input" id="cdName" placeholder="e.g. Jean Paul…"/></div>
+            <div class="form-group"><label class="form-label">Phone (optional)</label><input class="form-input" id="cdPhone" placeholder="07…"/></div>
+            <div class="form-group"><label class="form-label">Amount Owed (RWF) *</label><input type="number" class="form-input" id="cdAmount" value="0" min="0"/></div>
+            <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="cdDate"/></div>
+          </div>
+          <div class="form-row cols-2">
+            <div class="form-group"><label class="form-label">Description / Items Taken</label><input class="form-input" id="cdDesc" placeholder="e.g. 3 Primus + 1 Nyama Choma…"/></div>
+            <div class="form-group" style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="saveCustDebt()">💳 RECORD DEBT</button></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">⏳ Unpaid Debts</div><span class="badge badge-red" id="cdUnpaidTotal">RWF 0</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Amount</th><th>Date</th><th>Items</th><th>Action</th></tr></thead>
+            <tbody id="cdUnpaidBody"></tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">✅ Paid Debts</div><span class="badge badge-green" id="cdPaidTotal">RWF 0</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Amount</th><th>Debt Date</th><th>Paid Date</th></tr></thead>
+            <tbody id="cdPaidBody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VOID REQUESTS ── -->
+      <div class="page" id="page-voidreqs">
+        <div class="tabs">
+          <div class="tab active" onclick="showVoidTab('sales',this)">🛒 Sale Void Requests</div>
+          <div class="tab" onclick="showVoidTab('expenses',this)">💸 Expense Void Requests</div>
+        </div>
+        <div id="voidTab-sales">
+          <div class="card" id="voidSalesPanel">
+            <div class="card-header"><div class="card-title">🛒 Sale Void Requests</div></div>
+            <div class="table-wrap"><table><thead><tr><th>Sale</th><th>Product</th><th>Amount</th><th>Requested By</th><th>Reason</th><th>Date</th><th>Status</th><th id="voidSalesActionHeader">Action</th></tr></thead>
+            <tbody id="voidSalesBody"></tbody></table></div>
+          </div>
+        </div>
+        <div id="voidTab-expenses" style="display:none">
+          <div class="card">
+            <div class="card-header"><div class="card-title">💸 Expense Void Requests</div></div>
+            <div class="table-wrap"><table><thead><tr><th>Expense</th><th>Amount</th><th>Requested By</th><th>Reason</th><th>Date</th><th>Status</th><th id="voidExpActionHeader">Action</th></tr></thead>
+            <tbody id="voidExpBody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AUDIT LOG ── -->
+      <div class="page" id="page-audit">
+        <div class="form-panel" style="padding:14px 20px">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Filter by Action</label>
+              <select class="form-input" id="auditFilter" onchange="loadAuditLog()" style="width:180px">
+                <option value="">All Actions</option>
+                <option value="SALE">Sales</option>
+                <option value="VOID">Voids</option>
+                <option value="STOCK">Stock</option>
+                <option value="PRICE">Price Changes</option>
+                <option value="LOGIN">Logins</option>
+                <option value="EXPENSE">Expenses</option>
+                <option value="PRODUCT">Products</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Filter by User</label>
+              <select class="form-input" id="auditUserFilter" onchange="loadAuditLog()" style="width:180px">
+                <option value="">All Users</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="auditDate" onchange="loadAuditLog()" style="width:160px"/>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:18px" onclick="clearAuditFilter()">Clear Filters</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Audit Log — Every Action Tracked</div>
+            <span class="badge badge-purple" id="auditCount">0 records</span>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Time</th><th>User</th><th>Role</th><th>Action</th><th>Details</th><th>Type</th></tr></thead>
+          <tbody id="auditBody"></tbody></table></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <div id="modalContent"></div>
+    <button class="btn btn-ghost" style="margin-top:16px;width:100%;justify-content:center" onclick="closeModal()">✕ Close</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA STORE (localStorage-backed)
+// ═══════════════════════════════════════════════════════════
+const DB = {
+  get(k){ try{return JSON.parse(localStorage.getItem('barms_'+k))||null}catch{return null} },
+  set(k,v){ localStorage.setItem('barms_'+k,JSON.stringify(v)) },
+};
+
+function initDB(){
+  if(!DB.get('users')) DB.set('users',[
+    {id:1,fullName:'Bar Owner',username:'owner',password:'admin',role:'Owner',active:true},
+    {id:2,fullName:'John Manager',username:'manager',password:'manager123',role:'Manager',active:true},
+    {id:3,fullName:'Amina Bartender',username:'bartender1',password:'bar123',role:'Bartender',active:true},
+  ]);
+  if(!DB.get('products')) DB.set('products',[
+    {id:1,name:'Primus Beer',category:'Beer',unit:'Bottle',sellPrice:1500,costPrice:900,stock:120,alert:20,active:true},
+    {id:2,name:'Heineken',category:'Beer',unit:'Bottle',sellPrice:2000,costPrice:1200,stock:80,alert:15,active:true},
+    {id:3,name:'Fanta Orange',category:'Soft Drink',unit:'Bottle',sellPrice:800,costPrice:450,stock:60,alert:10,active:true},
+    {id:4,name:'Nyama Choma',category:'Food',unit:'Plate',sellPrice:8000,costPrice:4500,stock:30,alert:5,active:true},
+    {id:5,name:'Brochettes',category:'Food',unit:'Plate',sellPrice:3500,costPrice:2000,stock:40,alert:8,active:true},
+    {id:6,name:'Urwagwa',category:'Drinks',unit:'Glass',sellPrice:1200,costPrice:600,stock:50,alert:10,active:true},
+    {id:7,name:'Isombe & Ubugali',category:'Food',unit:'Plate',sellPrice:3000,costPrice:1500,stock:25,alert:5,active:true},
+    {id:8,name:'Johnnie Walker Red',category:'Spirits',unit:'Shot',sellPrice:4500,costPrice:2800,stock:7,alert:10,active:true},
+  ]);
+  if(!DB.get('sales')){
+    const today=fmtDate(new Date());
+    const yesterday=fmtDate(new Date(Date.now()-86400000));
+    DB.set('sales',[
+      {id:1,productId:1,productName:'Primus Beer',qty:3,unitPrice:1500,total:4500,soldBy:'Amina Bartender',date:today,time:'09:15',voided:false},
+      {id:2,productId:4,productName:'Nyama Choma',qty:1,unitPrice:8000,total:8000,soldBy:'Amina Bartender',date:today,time:'10:30',voided:false},
+      {id:3,productId:5,productName:'Brochettes',qty:2,unitPrice:3500,total:7000,soldBy:'Amina Bartender',date:today,time:'11:00',voided:false},
+      {id:4,productId:2,productName:'Heineken',qty:4,unitPrice:2000,total:8000,soldBy:'Amina Bartender',date:today,time:'13:20',voided:false},
+      {id:5,productId:3,productName:'Fanta Orange',qty:5,unitPrice:800,total:4000,soldBy:'Amina Bartender',date:yesterday,time:'14:00',voided:false},
+      {id:6,productId:1,productName:'Primus Beer',qty:10,unitPrice:1500,total:15000,soldBy:'Amina Bartender',date:yesterday,time:'19:00',voided:false},
+    ]);
+  }
+  if(!DB.get('stockMovements')) DB.set('stockMovements',[
+    {id:1,productId:1,productName:'Primus Beer',type:'IN',qty:50,note:'Restocked from Bralirwa',date:fmtDate(new Date()),by:'John Manager'},
+    {id:2,productId:4,productName:'Nyama Choma',type:'OUT',qty:5,note:'Sale',date:fmtDate(new Date()),by:'System'},
+  ]);
+  if(!DB.get('expenses')) DB.set('expenses',[
+    {id:1,desc:'Electricity bill',category:'Utilities',amount:45000,date:fmtDate(new Date()),by:'Bar Owner'},
+    {id:2,desc:'Cleaning supplies',category:'Cleaning',amount:12000,date:fmtDate(new Date()),by:'John Manager'},
+  ]);
+  if(!DB.get('employees')) DB.set('employees',[
+    {id:1,fullName:'Amina Uwimana',position:'Bartender',phone:'0788123456',salary:120000,hireDate:'2024-01-15',active:true},
+    {id:2,fullName:'Eric Habimana',position:'Waiter',phone:'0722987654',salary:90000,hireDate:'2024-03-01',active:true},
+    {id:3,fullName:'Claudine Mukamana',position:'Chef',phone:'0799456123',salary:150000,hireDate:'2023-11-20',active:true},
+  ]);
+  if(!DB.get('custDebts')) DB.set('custDebts',[]);
+  if(!DB.get('voidRequests')) DB.set('voidRequests',[]);
+  if(!DB.get('auditLog')) DB.set('auditLog',[]);
+  if(!DB.get('mgrPermissions')) DB.set('mgrPermissions',{canViewReports:true,canEditStock:true,canEditProducts:true,canViewEmployees:true,canViewAudit:false});
+  if(!DB.get('salaryPayments')) DB.set('salaryPayments',[]);
+  if(!DB.get('kitRevenue')) DB.set('kitRevenue',[
+    {id:1,amount:85000,date:fmtDate(new Date()),note:'Lunch & dinner service',by:'Bar Owner'},
+  ]);
+  if(!DB.get('kitExpenses')) DB.set('kitExpenses',[
+    {id:1,desc:'Cooking gas refill',category:'Cooking Gas',amount:15000,date:fmtDate(new Date()),by:'Bar Owner'},
+    {id:2,desc:'Tomatoes & onions bulk',category:'Ingredients',amount:8500,date:fmtDate(new Date()),by:'John Manager'},
+  ]);
+  if(!DB.get('notifications')) DB.set('notifications',[
+    {id:1,text:'Johnnie Walker Red is low — only 7 in stock',type:'warning',read:false,time:'5 min ago'},
+    {id:2,text:'End of day report ready for review',type:'info',read:false,time:'1 hr ago'},
+    {id:3,text:'New user bartender1 added successfully',type:'success',read:true,time:'2 hrs ago'},
+  ]);
+  if(!DB.get('settings')) DB.set('settings',{barName:'BarMS Pro',location:'Kigali, Rwanda',currency:'RWF',tax:0});
+  if(!DB.get('nextId')) DB.set('nextId',{sale:100,stock:100,exp:100,kit:100,emp:100,debt:100,pay:100,user:10});
+}
+
+function nextId(type){
+  const ids=DB.get('nextId');
+  const n=(ids[type]||100)+1;
+  ids[type]=n;
+  DB.set('nextId',ids);
+  return n;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SESSION
+// ═══════════════════════════════════════════════════════════
+let session={userId:0,username:'',role:'',fullName:''};
+const ROLES={Owner:3,Manager:2,Bartender:1};
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim().toLowerCase();
+  const p=document.getElementById('loginPass').value;
+  const users=DB.get('users')||[];
+  const found=users.find(x=>x.username===u&&x.password===p&&x.active);
+  if(!found){document.getElementById('loginErr').style.display='block';return;}
+  document.getElementById('loginErr').style.display='none';
+  session={userId:found.id,username:found.username,role:found.role,fullName:found.fullName};
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('appShell').style.display='flex';
+  document.getElementById('sidebarName').textContent=found.fullName;
+  document.getElementById('sidebarRole').textContent=found.role;
+  document.getElementById('avatarTxt').textContent=found.fullName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  applyRoleAccess();
+  showPage('dashboard');
+  auditAction('LOGIN',`${found.fullName} logged in as ${found.role}`);
+  // Show pending void requests on login
+  setTimeout(()=>{
+    const pending=(DB.get('voidRequests')||[]).filter(r=>r.status==='Pending');
+    if(pending.length>0&&session.role!=='Bartender'){
+      showPopupNotif(`📋 You have ${pending.length} pending void request${pending.length>1?'s':''} awaiting your review`,'warning','📋');
+    }
+    runFraudCheck();
+  },1200);
+}
+
+function doLogout(){
+  session={userId:0,username:'',role:'',fullName:''};
+  document.body.classList.remove('bartender-mode');
+  // Reset all nav visibility so next login starts clean
+  document.querySelectorAll('.sb-section').forEach(el=>el.style.display='');
+  ['nav-dashboard','nav-sales','nav-quicksale','nav-stock','nav-products',
+   'nav-expenses','nav-kitchen','nav-reports','nav-charts','nav-employees',
+   'nav-custdebts','nav-voidreqs','nav-audit','nav-settings'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='';
+  });
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('loginWrap').style.display='flex';
+}
+
+let loginRole='Owner';
+function setRole(r,el){
+  loginRole=r;
+  document.querySelectorAll('.role-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  const map={Owner:{u:'owner',p:'admin'},Manager:{u:'manager',p:'manager123'},Bartender:{u:'bartender1',p:'bar123'}};
+  document.getElementById('loginUser').value=map[r].u;
+  document.getElementById('loginPass').value=map[r].p;
+}
+
+function applyRoleAccess(){
+  const isOwner=session.role==='Owner';
+  const isBartender=session.role==='Bartender';
+
+  // ── STEP 1: Reset EVERYTHING to visible first ──────────────
+  document.body.classList.remove('bartender-mode');
+  document.querySelectorAll('.sb-section').forEach(el=>el.style.display='');
+  ['nav-dashboard','nav-sales','nav-quicksale','nav-stock','nav-products',
+   'nav-expenses','nav-kitchen','nav-reports','nav-charts','nav-employees',
+   'nav-custdebts','nav-voidreqs','nav-audit','nav-settings'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='';
+  });
+
+  // ── STEP 2: Apply restrictions based on role ───────────────
+  if(isBartender){
+    document.body.classList.add('bartender-mode');
+    ['nav-stock','nav-products','nav-expenses','nav-kitchen',
+     'nav-reports','nav-charts','nav-employees','nav-settings',
+     'nav-custdebts','nav-voidreqs','nav-audit'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+    document.querySelectorAll('.sb-section').forEach((el,i)=>{if(i>0)el.style.display='none';});
+  }
+
+  if(session.role==='Manager'){
+    const perms=DB.get('mgrPermissions')||getDefaultPerms();
+    if(!perms.canViewReports){['nav-reports','nav-charts'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});}
+    if(!perms.canEditStock){const e=document.getElementById('nav-stock');if(e)e.style.display='none';}
+    if(!perms.canEditProducts){const e=document.getElementById('nav-products');if(e)e.style.display='none';}
+    if(!perms.canViewEmployees){const e=document.getElementById('nav-employees');if(e)e.style.display='none';}
+    if(!perms.canViewAudit){const e=document.getElementById('nav-audit');if(e)e.style.display='none';}
+    const se=document.getElementById('nav-settings');if(se)se.style.display='none';
+  }
+
+  if(isOwner||session.role==='Manager') updateVoidBadge();
+}
+
+function getDefaultPerms(){
+  return{canViewReports:true,canEditStock:true,canEditProducts:true,canViewEmployees:true,canViewAudit:false};
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+const pageTitles={
+  dashboard:'Dashboard',sales:'Sales / Kugurisha',quicksale:'Quick Sale ⚡',
+  stock:'Stock Control',products:'Products',expenses:'Expenses',
+  kitchen:'🍳 Kitchen Module',reports:'Reports',charts:'Charts',
+  employees:'Employees',custdebts:'💳 Customer Debts',
+  voidreqs:'🚫 Void Requests',audit:'📋 Audit Log',settings:'Settings'
+};
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg)pg.classList.add('active');
+  const nav=document.getElementById('nav-'+id);
+  if(nav)nav.classList.add('active');
+  document.getElementById('pageTitle').textContent=pageTitles[id]||id;
+  document.getElementById('pageDate').textContent=new Date().toLocaleDateString('en-RW',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Load page data
+  const loaders={
+    dashboard:loadDashboard,sales:()=>{loadSaleProducts();loadSalesHistory(0,null)},
+    quicksale:loadQsProducts,stock:()=>{loadStockProducts();loadStockData()},
+    products:loadProducts,expenses:()=>{loadExpenses();document.getElementById('expDate').value=fmtDate(new Date())},
+    kitchen:()=>{
+      loadKitchenKpis();
+      document.getElementById('kitRevDate').value=fmtDate(new Date());
+      document.getElementById('kitExpDate').value=fmtDate(new Date());
+      document.getElementById('kitPnlDate').value=fmtDate(new Date());
+      loadKitRevenue();
+    },
+    reports:()=>{_reportType='daily';document.getElementById('reportDateWrap').style.display='none';loadReport();},charts:loadCharts,
+    employees:()=>{loadEmployees();loadDebts();loadSalaryHistory()},
+    custdebts:()=>{document.getElementById('cdDate').value=fmtDate(new Date());loadCustDebts();},
+    voidreqs:loadVoidRequests,
+    audit:loadAuditLog,
+    settings:()=>{loadSettings();loadUsers();loadMgrPermissions()}
+  };
+  if(loaders[id])loaders[id]();
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function fmtDate(d){return d.toISOString().split('T')[0]}
+function fmtRWF(n){return'RWF '+(+n).toLocaleString()}
+function now(){return new Date().toTimeString().slice(0,5)}
+function today(){return fmtDate(new Date())}
+
+function toast(msg,type='success'){
+  const t=document.createElement('div');
+  const colors={success:'var(--green)',error:'var(--red)',warning:'var(--orange)'};
+  t.style.cssText=`position:fixed;bottom:24px;right:24px;background:${colors[type]||colors.success};color:#fff;padding:12px 20px;border-radius:var(--r-sm);font-size:13px;font-weight:600;z-index:999;box-shadow:var(--shadow-md);animation:slideIn .3s ease`;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+function confirm2(msg,cb){
+  const m=document.getElementById('modalContent');
+  m.innerHTML=`<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">❓</div><h3 style="margin-bottom:8px">Confirm Action</h3><p style="color:var(--muted);font-size:13px;margin-bottom:20px">${msg}</p><div style="display:flex;gap:10px;justify-content:center"><button class="btn btn-green" onclick="closeModal();(arguments[0].cb)()">✓ Yes, Confirm</button><button class="btn btn-ghost" onclick="closeModal()">✕ Cancel</button></div></div>`;
+  m.querySelector('.btn-green').onclick=()=>{closeModal();cb()};
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show')}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function loadDashboard(){
+  const sales=DB.get('sales')||[];
+  const products=DB.get('products')||[];
+  const expenses=DB.get('expenses')||[];
+  const kitRevenue=DB.get('kitRevenue')||[];
+  const notifs=DB.get('notifications')||[];
+  const td=today();
+  const mo=td.slice(0,7);
+
+  const todaySales=sales.filter(s=>s.date===td&&!s.voided);
+  const todayRev=todaySales.reduce((a,s)=>a+s.total,0);
+  const todayQty=todaySales.reduce((a,s)=>a+s.qty,0);
+  const todayExp=expenses.filter(e=>e.date===td).reduce((a,e)=>a+e.amount,0);
+  const todayKit=kitRevenue.filter(k=>k.date===td).reduce((a,k)=>a+k.amount,0);
+  const mthRev=sales.filter(s=>s.date.startsWith(mo)&&!s.voided).reduce((a,s)=>a+s.total,0);
+  const lowProds=products.filter(p=>p.active&&p.stock<=p.alert);
+  const unread=notifs.filter(n=>!n.read).length;
+
+  // Correct profit: Sales - COGS - Expenses
+  const cogs=todaySales.reduce((a,s)=>{const p=products.find(x=>x.id===s.productId);return a+(p?(p.costPrice*s.qty):0)},0);
+  const profit=todayRev-cogs-todayExp;
+
+  if(session.role==='Bartender'){
+    const myTodaySales=todaySales.filter(s=>s.soldBy===session.fullName);
+    const myTotalMoney=myTodaySales.reduce((a,s)=>a+s.total,0);
+    const myQty=myTodaySales.reduce((a,s)=>a+s.qty,0);
+    document.getElementById('kpiRow1').innerHTML=[
+      kpiCard('My Sales Today',fmtRWF(myTotalMoney),`${myTodaySales.length} transactions`,'gold','💵'),
+      kpiCard('Items Sold',myQty,'Today','green','🛒'),
+      kpiCard('Low Stock',lowProds.length,`of ${products.filter(p=>p.active).length} products`,'orange','⚠️'),
+      kpiCard('Kitchen Income',fmtRWF(todayKit),'Today','cyan','🍳'),
+    ].join('');
+    document.getElementById('kpiRow2').innerHTML='';
+    document.getElementById('cashFlowCard').style.display='none';
+    document.querySelector('#page-dashboard .grid-2').style.display='none';
+    document.querySelector('#page-dashboard > .card').style.display='none';
+    updateNotifBadge();return;
+  }
+  document.getElementById('cashFlowCard').style.display='';
+  document.querySelector('#page-dashboard .grid-2').style.display='';
+  document.querySelector('#page-dashboard > .card').style.display='';
+
+  document.getElementById('kpiRow1').innerHTML=[
+    kpiCard('Today Revenue',fmtRWF(todayRev),`${todaySales.length} transactions`,'gold','💵'),
+    kpiCard('Items Sold',todayQty,'Today','green','🛒'),
+    kpiCard('Expenses',fmtRWF(todayExp),'Operating costs','red','💸'),
+    kpiCard('Net Profit',fmtRWF(profit),profit>=0?'In profit':'In loss',profit>=0?'green':'red','📈'),
+  ].join('');
+  document.getElementById('kpiRow2').innerHTML=[
+    kpiCard('Month Revenue',fmtRWF(mthRev),new Date().toLocaleDateString('en',{month:'long'}),'gold','📅'),
+    kpiCard('Kitchen Income',fmtRWF(todayKit),'Today','cyan','🍳'),
+    kpiCard('Low Stock',lowProds.length,`of ${products.filter(p=>p.active).length} products`,'orange','⚠️'),
+    kpiCard('Notifications',unread,'Unread','purple','🔔'),
+  ].join('');
+
+  // Low stock table
+  document.getElementById('lowStockCount').textContent=lowProds.length;
+  document.getElementById('lowStockBody').innerHTML=lowProds.map(p=>`
+    <tr><td>${p.name}</td><td class="mono">${p.stock}</td><td class="mono">${p.alert}</td>
+    <td><span class="badge ${p.stock<=0?'badge-red':'badge-orange'}">${p.stock<=0?'EMPTY':'LOW'}</span></td></tr>
+  `).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">No low stock items ✅</td></tr>';
+
+  // Today's sales
+  document.getElementById('todayTxCount').textContent=`${todaySales.length} transactions`;
+  document.getElementById('todaySalesBody').innerHTML=todaySales.slice().reverse().map(s=>`
+    <tr><td class="muted">${s.time}</td><td>${s.productName}</td><td class="mono">${s.qty}</td>
+    <td class="mono">${fmtRWF(s.unitPrice)}</td><td class="mono" style="font-weight:700;color:var(--green)">${fmtRWF(s.total)}</td>
+    <td class="muted">${s.soldBy}</td></tr>
+  `).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No sales recorded today yet</td></tr>';
+
+  // Monthly chart
+  buildMonthlyChart();
+  updateNotifBadge();
+
+  // Cash Flow Card
+  const settings=DB.get('settings')||{};
+  const taxAmt=settings.tax||0;
+  const kitExpenses=DB.get('kitExpenses')||[];
+  const kitExp=kitExpenses.filter(k=>k.date===td).reduce((a,k)=>a+k.amount,0);
+  const totalIn=todayRev+todayKit;
+  const totalOut=todayExp+kitExp+taxAmt;
+  const netFlow=totalIn-totalOut;
+  const cf=document.getElementById('cashFlowGrid');
+  if(cf) cf.innerHTML=[
+    `<div style="background:var(--green-lt);border-radius:12px;padding:14px;border-left:4px solid var(--green)">
+      <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">💚 Money In</div>
+      <div style="font-size:18px;font-weight:800;color:var(--green);font-family:'DM Mono',monospace">${fmtRWF(totalIn)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">Sales + Kitchen</div>
+    </div>`,
+    `<div style="background:var(--red-lt);border-radius:12px;padding:14px;border-left:4px solid var(--red)">
+      <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">🔴 Money Out</div>
+      <div style="font-size:18px;font-weight:800;color:var(--red);font-family:'DM Mono',monospace">${fmtRWF(totalOut)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">Expenses + Tax${taxAmt>0?' ('+fmtRWF(taxAmt)+')':''}</div>
+    </div>`,
+    `<div style="background:${netFlow>=0?'var(--blue-lt)':'var(--red-lt)'};border-radius:12px;padding:14px;border-left:4px solid ${netFlow>=0?'var(--blue)':'var(--red)'}">
+      <div style="font-size:10px;font-weight:700;color:${netFlow>=0?'var(--blue)':'var(--red)'};text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">📊 Net Cash Flow</div>
+      <div style="font-size:18px;font-weight:800;color:${netFlow>=0?'var(--blue)':'var(--red)'};font-family:'DM Mono',monospace">${fmtRWF(netFlow)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">${netFlow>=0?'Positive flow ✅':'Negative — check expenses ⚠️'}</div>
+    </div>`,
+    `<div style="background:var(--purple-lt);border-radius:12px;padding:14px;border-left:4px solid var(--purple)">
+      <div style="font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">💜 COGS Today</div>
+      <div style="font-size:18px;font-weight:800;color:var(--purple);font-family:'DM Mono',monospace">${fmtRWF(cogs)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">Cost of goods sold</div>
+    </div>`,
+  ].join('');
+  const status=document.getElementById('cashFlowStatus');
+  if(status){status.textContent=netFlow>=0?'Positive':'Negative';status.className='badge '+(netFlow>=0?'badge-green':'badge-red');}
+}
+
+// Color accent map for icon dots
+const kpiAccents={gold:'#C8931A',green:'#1E7A45',red:'#C0392B',cyan:'#0F7C75',blue:'#1A5AA0',orange:'#C86414',purple:'#6B3FA0'};
+function kpiCard(label,value,note,color,icon){
+  const accent=kpiAccents[color]||'#888';
+  return `<div class="kpi kpi-${color}">
+    <div class="kpi-top">
+      <div class="kpi-icon">${icon}</div>
+      <div style="width:8px;height:8px;border-radius:50%;background:${accent};opacity:.4;margin-top:4px;flex-shrink:0"></div>
+    </div>
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-note">${note}</div>
+  </div>`;
+}
+
+function buildMonthlyChart(){
+  const sales=DB.get('sales')||[];
+  const months=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(); d.setMonth(d.getMonth()-i);
+    const key=fmtDate(d).slice(0,7);
+    const lbl=d.toLocaleDateString('en',{month:'short'});
+    const rev=sales.filter(s=>s.date.startsWith(key)&&!s.voided).reduce((a,s)=>a+s.total,0);
+    months.push({lbl,rev});
+  }
+  const max=Math.max(...months.map(m=>m.rev),1);
+  document.getElementById('monthlyChart').innerHTML=months.map(m=>`
+    <div class="chart-col">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${fmtRWF(m.rev).replace('RWF ','')}</div>
+      <div class="chart-bar" style="height:${Math.round((m.rev/max)*80)}px;background:linear-gradient(180deg,#A78BFA,#7C3AED);opacity:.85;border-radius:6px 6px 0 0"></div>
+      <div class="chart-lbl">${m.lbl}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SALES
+// ═══════════════════════════════════════════════════════════
+let _saleProduct=null;
+function loadSaleProducts(){
+  const products=(DB.get('products')||[]).filter(p=>p.active&&p.stock>0);
+  const sel=document.getElementById('saleProduct');
+  sel.innerHTML=products.map(p=>`<option value="${p.id}">${p.name} — ${fmtRWF(p.sellPrice)} [${p.stock} ${p.unit}]</option>`).join('');
+  onSaleProductChange();
+}
+function onSaleProductChange(){
+  const id=+document.getElementById('saleProduct').value;
+  const p=(DB.get('products')||[]).find(x=>x.id===id);
+  _saleProduct=p||null;
+  if(p){
+    document.getElementById('salePriceInfo').textContent=`${fmtRWF(p.sellPrice)} / ${p.unit}`;
+    document.getElementById('saleStockInfo').textContent=`In Stock: ${p.stock} ${p.unit}`;
+    document.getElementById('saleStockInfo').style.color=p.stock<=p.alert?'var(--red)':p.stock<=p.alert*2?'var(--orange)':'var(--green)';
+    document.getElementById('saleQty').max=p.stock;
+  }
+  updateSaleTotal();
+}
+function updateSaleTotal(){
+  if(!_saleProduct){document.getElementById('saleTotalDisplay').textContent='RWF 0';return;}
+  const qty=+document.getElementById('saleQty').value||0;
+  document.getElementById('saleTotalDisplay').textContent=fmtRWF(_saleProduct.sellPrice*qty);
+}
+function recordSale(){
+  if(!_saleProduct){toast('Please select a product first','error');return;}
+  const qty=+document.getElementById('saleQty').value;
+  if(qty<1||qty>_saleProduct.stock){toast(`Only ${_saleProduct.stock} in stock!`,'error');return;}
+  const total=_saleProduct.sellPrice*qty;
+  confirm2(`Confirm Sale?\n\nProduct: ${_saleProduct.name}\nQty: ${qty}\nTotal: ${fmtRWF(total)}`,()=>{
+    const sales=DB.get('sales')||[];
+    sales.push({id:nextId('sale'),productId:_saleProduct.id,productName:_saleProduct.name,qty,unitPrice:_saleProduct.sellPrice,total,soldBy:session.fullName,date:today(),time:now(),voided:false});
+    DB.set('sales',sales);
+    // Update stock
+    const prods=DB.get('products')||[];
+    const idx=prods.findIndex(p=>p.id===_saleProduct.id);
+    if(idx>=0){prods[idx].stock-=qty;DB.set('products',prods);}
+    // Stock movement
+    const moves=DB.get('stockMovements')||[];
+    moves.push({id:nextId('stock'),productId:_saleProduct.id,productName:_saleProduct.name,type:'OUT',qty,note:'Sale',date:today(),by:session.fullName});
+    DB.set('stockMovements',moves);
+    toast(`✅ Sale recorded! ${fmtRWF(total)} received.`);
+    auditAction('SALE',`Sold ${qty}× ${_saleProduct.name} for ${fmtRWF(total)}`);
+    document.getElementById('saleQty').value=1;
+    loadSaleProducts();
+    loadSalesHistory(0,null);
+    runFraudCheck();
+  });
+}
+function loadSalesHistory(filter,tabEl){
+  if(tabEl){document.querySelectorAll('#page-sales .tab').forEach(t=>t.classList.remove('active'));tabEl.classList.add('active');}
+  let all=DB.get('sales')||[];
+  // Bartenders only see their own sales
+  if(session.role==='Bartender') all=all.filter(s=>s.soldBy===session.fullName);
+  const td=today();
+  const sales=filter===0?all.filter(s=>s.date===td):filter===1?all.filter(s=>{const d=new Date(s.date);return d>=new Date(Date.now()-7*86400000)}):all.filter(s=>s.date.startsWith(td.slice(0,7)));
+  document.getElementById('salesHistoryBody').innerHTML=sales.slice().reverse().map(s=>`
+    <tr class="${s.voided?'void-row':''}">
+      <td class="muted">${s.date}</td><td>${s.productName}</td><td class="mono">${s.qty}</td>
+      <td class="mono">${fmtRWF(s.unitPrice)}</td>
+      <td class="mono" style="font-weight:700;color:${s.voided?'var(--faint)':'var(--green)'}">${fmtRWF(s.total)}</td>
+      <td class="muted">${s.soldBy}</td>
+      <td>${s.voided
+        ?'<span class="badge badge-red">Voided</span>'
+        :session.role==='Owner'
+          ?`<button class="btn btn-ghost btn-sm" onclick="voidSale(${s.id})">Void</button>`
+          :session.role==='Manager'
+            ?`<button class="btn btn-ghost btn-sm" style="color:var(--orange)" onclick="requestVoidSale(${s.id},'${s.productName}',${s.total})">Request Void</button>`
+            :''
+      }</td>
+    </tr>
+  `).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">No sales found</td></tr>';
+}
+function voidSale(id){
+  confirm2('Are you sure you want to void this sale? Stock will be restored.',()=>{
+    const sales=DB.get('sales')||[];
+    const s=sales.find(x=>x.id===id);
+    if(!s)return;
+    s.voided=true;
+    DB.set('sales',sales);
+    // Restore stock
+    const prods=DB.get('products')||[];
+    const idx=prods.findIndex(p=>p.id===s.productId);
+    if(idx>=0){prods[idx].stock+=s.qty;DB.set('products',prods);}
+    toast('Sale voided. Stock restored.','warning');
+    loadSalesHistory(0,null);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUICK SALE
+// ═══════════════════════════════════════════════════════════
+let qsCart=[];
+function loadQsProducts(){
+  const products=(DB.get('products')||[]).filter(p=>p.active&&p.stock>0);
+  document.getElementById('qsProduct').innerHTML=products.map(p=>`<option value="${p.id}">${p.name} — ${fmtRWF(p.sellPrice)}</option>`).join('');
+}
+function addQsItem(){
+  const id=+document.getElementById('qsProduct').value;
+  const qty=+document.getElementById('qsQty').value||1;
+  const p=(DB.get('products')||[]).find(x=>x.id===id);
+  if(!p)return;
+  const existing=qsCart.find(x=>x.id===id);
+  if(existing)existing.qty+=qty;
+  else qsCart.push({id,name:p.name,unitPrice:p.sellPrice,qty,maxStock:p.stock});
+  renderQsCart();
+}
+function removeQsItem(id){qsCart=qsCart.filter(x=>x.id!==id);renderQsCart();}
+function clearQsItems(){qsCart=[];renderQsCart();}
+function renderQsCart(){
+  const el=document.getElementById('qsItems');
+  if(!qsCart.length){el.innerHTML='<p style="text-align:center;color:var(--muted);font-size:13px;padding:20px 0">No items added yet</p>';document.getElementById('qsSubtotal').textContent='RWF 0';document.getElementById('qsTotal').textContent='RWF 0';document.getElementById('qsSummary').innerHTML='';return;}
+  el.innerHTML=qsCart.map(item=>`
+    <div class="qs-item">
+      <div class="qs-name">${item.name}</div>
+      <input type="number" class="form-input qs-qty" value="${item.qty}" min="1" max="${item.maxStock}" onchange="updateQsQty(${item.id},this.value)" style="width:70px;padding:6px"/>
+      <div class="qs-price">${fmtRWF(item.unitPrice*item.qty)}</div>
+      <span class="qs-remove" onclick="removeQsItem(${item.id})">✕</span>
+    </div>
+  `).join('');
+  const sub=qsCart.reduce((a,x)=>a+x.unitPrice*x.qty,0);
+  document.getElementById('qsSubtotal').textContent=fmtRWF(sub);
+  document.getElementById('qsTotal').textContent=fmtRWF(sub);
+  document.getElementById('qsSummary').innerHTML=qsCart.map(x=>`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;color:var(--muted)"><span>${x.qty}× ${x.name}</span><span class="mono">${fmtRWF(x.unitPrice*x.qty)}</span></div>`).join('');
+}
+function updateQsQty(id,v){const item=qsCart.find(x=>x.id===id);if(item)item.qty=+v||1;renderQsCart();}
+function processQuickSale(){
+  if(!qsCart.length){toast('Add items first','error');return;}
+  const total=qsCart.reduce((a,x)=>a+x.unitPrice*x.qty,0);
+  confirm2(`Confirm quick sale of ${qsCart.length} item(s)?\nTotal: ${fmtRWF(total)}`,()=>{
+    const sales=DB.get('sales')||[];
+    const prods=DB.get('products')||[];
+    const moves=DB.get('stockMovements')||[];
+    for(const item of qsCart){
+      const p=prods.find(x=>x.id===item.id);
+      if(!p||p.stock<item.qty){toast(`Not enough stock for ${item.name}`,'error');return;}
+      sales.push({id:nextId('sale'),productId:item.id,productName:item.name,qty:item.qty,unitPrice:item.unitPrice,total:item.unitPrice*item.qty,soldBy:session.fullName,date:today(),time:now(),voided:false});
+      const idx=prods.findIndex(x=>x.id===item.id);
+      prods[idx].stock-=item.qty;
+      moves.push({id:nextId('stock'),productId:item.id,productName:item.name,type:'OUT',qty:item.qty,note:'Quick Sale',date:today(),by:session.fullName});
+    }
+    DB.set('sales',sales);DB.set('products',prods);DB.set('stockMovements',moves);
+    toast(`✅ Quick sale completed! ${fmtRWF(total)} received.`);
+    clearQsItems();
+    loadQsProducts();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// STOCK
+// ═══════════════════════════════════════════════════════════
+function loadStockProducts(){
+  const prods=(DB.get('products')||[]).filter(p=>p.active);
+  document.getElementById('stockProduct').innerHTML=prods.map(p=>`<option value="${p.id}">${p.name} [${p.stock} ${p.unit}]</option>`).join('');
+  onStockProductChange();
+}
+function onStockProductChange(){
+  const id=+document.getElementById('stockProduct').value;
+  const p=(DB.get('products')||[]).find(x=>x.id===id);
+  if(p)document.getElementById('stockCurrentInfo').textContent=`${p.stock} ${p.unit}`;
+}
+function recordStock(){
+  const id=+document.getElementById('stockProduct').value;
+  const type=document.getElementById('stockType').value;
+  const qty=+document.getElementById('stockQty').value||0;
+  const cost=+document.getElementById('stockCost').value||0;
+  const note=document.getElementById('stockNote').value||type;
+  if(qty<1){toast('Enter a valid quantity','error');return;}
+  const prods=DB.get('products')||[];
+  const idx=prods.findIndex(p=>p.id===id);
+  if(idx<0){toast('Product not found','error');return;}
+  if(type==='OUT'&&prods[idx].stock<qty){toast(`Only ${prods[idx].stock} in stock!`,'error');return;}
+  if(type==='IN')prods[idx].stock+=qty;
+  else prods[idx].stock-=qty;
+  if(cost>0&&type==='IN')prods[idx].costPrice=cost;
+  DB.set('products',prods);
+  const moves=DB.get('stockMovements')||[];
+  moves.push({id:nextId('stock'),productId:id,productName:prods[idx].name,type,qty,note,date:today(),by:session.fullName});
+  DB.set('stockMovements',moves);
+  toast(`✅ Stock ${type} recorded for ${prods[idx].name}`);
+  auditAction('STOCK',`Stock ${type}: ${qty}× ${prods[idx].name}. Note: ${note}`);
+  loadStockProducts();loadStockData();
+}
+function loadStockData(filter=''){
+  const allProds=(DB.get('products')||[]).filter(p=>p.active);
+  const prods=filter?allProds.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase())||p.category.toLowerCase().includes(filter.toLowerCase())):allProds;
+  const allMoves=DB.get('stockMovements')||[];
+
+  document.getElementById('stockSummaryBody').innerHTML=prods.map(p=>{
+    const prodMoves=allMoves.filter(m=>m.productId===p.id);
+    const totalIn=prodMoves.filter(m=>m.type==='IN').reduce((a,m)=>a+m.qty,0);
+    const totalOut=prodMoves.filter(m=>m.type==='OUT').reduce((a,m)=>a+m.qty,0);
+    const lastMove=prodMoves.slice().sort((a,b)=>(b.id||0)-(a.id||0))[0];
+    const pct=Math.min(100,Math.round((p.stock/(p.alert*3||30))*100));
+    const color=p.stock<=0?'var(--red)':p.stock<=p.alert?'var(--orange)':'var(--green)';
+    return`<tr>
+      <td style="font-weight:700">${p.name}</td>
+      <td class="muted">${p.category}</td>
+      <td>
+        <span style="font-weight:800;color:${color};font-family:'DM Mono',monospace;font-size:15px">${p.stock}</span>
+        <div class="stock-bar" style="margin-top:4px"><div class="stock-fill" style="width:${pct}%;background:${color}"></div></div>
+      </td>
+      <td><span style="font-weight:700;color:var(--green);font-family:'DM Mono',monospace">▲ ${totalIn}</span></td>
+      <td><span style="font-weight:700;color:var(--red);font-family:'DM Mono',monospace">▼ ${totalOut}</span></td>
+      <td class="muted">${p.unit}</td>
+      <td><span class="badge ${p.stock<=0?'badge-red':p.stock<=p.alert?'badge-orange':'badge-green'}">${p.stock<=0?'EMPTY':p.stock<=p.alert?'LOW':'OK'}</span></td>
+      <td>${lastMove?`<span class="badge ${lastMove.type==='IN'?'badge-green':'badge-red'}">${lastMove.type}</span> <span style="font-size:12px;color:var(--muted)">${lastMove.qty} — ${lastMove.note||''}</span>`:'<span style="color:var(--faint);font-size:12px">No movements</span>'}</td>
+      <td class="muted" style="font-size:12px">${lastMove?lastMove.date:'—'}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">No products found</td></tr>';
+}
+function filterStockTable(v){loadStockData(v);}
+
+// ═══════════════════════════════════════════════════════════
+// PRODUCTS
+// ═══════════════════════════════════════════════════════════
+let _editProductId=0;
+function loadProducts(filter=''){
+  let prods=DB.get('products')||[];
+  if(filter)prods=prods.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase())||p.category.toLowerCase().includes(filter.toLowerCase()));
+  document.getElementById('productsBody').innerHTML=prods.map(p=>`
+    <tr>
+      <td style="font-weight:600">${p.name}</td><td class="muted">${p.category}</td><td class="muted">${p.unit}</td>
+      <td class="mono" style="color:var(--green)">${fmtRWF(p.sellPrice)}</td>
+      <td class="mono">${fmtRWF(p.costPrice)}</td>
+      <td><span style="font-weight:700;font-family:'DM Mono',monospace;color:${p.stock<=p.alert?'var(--red)':'var(--text)'}">${p.stock}</span></td>
+      <td class="mono">${p.alert}</td>
+      <td style="white-space:nowrap">
+        ${session.role==='Owner'?`<button class="btn btn-ghost btn-sm" onclick="editProduct(${p.id})">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="deactivateProduct(${p.id})" style="color:var(--red)">${p.active?'🗑 Remove':''}</button>`
+        :session.role==='Manager'?`<button class="btn btn-ghost btn-sm" style="color:var(--blue)" onclick="requestPriceChange(${p.id},'${p.name.replace(/'/g,"\\'")}',${p.sellPrice})">💲 Change Price</button>`
+        :''}
+      </td>
+    </tr>
+  `).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No products found</td></tr>';
+}
+function filterProducts(v){loadProducts(v);}
+function saveProduct(){
+  const name=document.getElementById('pName').value.trim();
+  if(!name){toast('Product name is required','error');return;}
+  const prods=DB.get('products')||[];
+  const prod={name,category:document.getElementById('pCategory').value||'General',unit:document.getElementById('pUnit').value||'Unit',sellPrice:+document.getElementById('pSellPrice').value||0,costPrice:+document.getElementById('pCostPrice').value||0,stock:+document.getElementById('pStock').value||0,alert:+document.getElementById('pAlert').value||5,active:true};
+  if(_editProductId){
+    const idx=prods.findIndex(p=>p.id===_editProductId);
+    if(idx>=0){prods[idx]={...prods[idx],...prod};DB.set('products',prods);auditAction('PRODUCT',`Updated product: ${name}`);toast('✅ Product updated!');}
+    clearProductForm();
+  } else {
+    prod.id=nextId('sale');prods.push(prod);DB.set('products',prods);
+    auditAction('PRODUCT',`Added product: ${name} at ${fmtRWF(prod.sellPrice)}`);
+    toast('✅ Product saved!');clearProductForm();
+  }
+  loadProducts();
+}
+function editProduct(id){
+  const p=(DB.get('products')||[]).find(x=>x.id===id);
+  if(!p)return;
+  _editProductId=id;
+  document.getElementById('pName').value=p.name;
+  document.getElementById('pCategory').value=p.category;
+  document.getElementById('pUnit').value=p.unit;
+  document.getElementById('pSellPrice').value=p.sellPrice;
+  document.getElementById('pCostPrice').value=p.costPrice;
+  document.getElementById('pStock').value=p.stock;
+  document.getElementById('pAlert').value=p.alert;
+  document.getElementById('pSaveBtn').textContent='✏️ UPDATE PRODUCT';
+  document.getElementById('productFormTitle').textContent='✏️ EDIT PRODUCT';
+  window.scrollTo(0,0);
+}
+function clearProductForm(){
+  _editProductId=0;
+  ['pName','pCategory','pUnit'].forEach(id=>document.getElementById(id).value=id==='pCategory'?'Beer':id==='pUnit'?'Bottle':'');
+  ['pSellPrice','pCostPrice','pStock'].forEach(id=>document.getElementById(id).value=0);
+  document.getElementById('pAlert').value=5;
+  document.getElementById('pSaveBtn').textContent='💾 SAVE PRODUCT';
+  document.getElementById('productFormTitle').textContent='📋 ADD PRODUCT — Click any row in the table to edit';
+}
+function deactivateProduct(id){
+  confirm2('Remove this product from active listings?',()=>{
+    const prods=DB.get('products')||[];
+    const idx=prods.findIndex(p=>p.id===id);
+    if(idx>=0){prods[idx].active=false;DB.set('products',prods);toast('Product removed','warning');loadProducts();}
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════════════════════════
+function saveExpense(){
+  const desc=document.getElementById('expDesc').value.trim();
+  const amount=+document.getElementById('expAmount').value||0;
+  if(!desc||amount<=0){toast('Fill all required fields','error');return;}
+  const expenses=DB.get('expenses')||[];
+  expenses.push({id:nextId('exp'),desc,category:document.getElementById('expCategory').value,amount,date:document.getElementById('expDate').value||today(),by:session.fullName});
+  DB.set('expenses',expenses);
+  auditAction('EXPENSE',`Recorded expense: ${desc} — ${fmtRWF(amount)} (${document.getElementById('expCategory').value})`);
+  document.getElementById('expDesc').value='';document.getElementById('expAmount').value=0;
+  toast('✅ Expense recorded!');loadExpenses();
+}
+function loadExpenses(){
+  const expenses=DB.get('expenses')||[];
+  const mo=today().slice(0,7);
+  const monthTotal=expenses.filter(e=>e.date.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
+  document.getElementById('expMonthTotal').textContent=fmtRWF(monthTotal);
+  document.getElementById('expensesBody').innerHTML=expenses.slice().reverse().map(e=>`
+    <tr class="${e.voided?'void-row':''}">
+      <td class="muted">${e.date}</td><td>${e.voided?'<s>'+e.desc+'</s>':e.desc}</td>
+      <td><span class="badge badge-orange">${e.category}</span></td>
+      <td class="mono" style="font-weight:700;color:${e.voided?'var(--faint)':'var(--red)'}">${fmtRWF(e.amount)}</td>
+      <td class="muted">${e.by}</td>
+      <td>${e.voided
+        ?'<span class="badge badge-red">Voided</span>'
+        :session.role==='Owner'
+          ?`<button class="btn btn-ghost btn-sm" onclick="voidExpense(${e.id})">Void</button>`
+          :session.role==='Manager'
+            ?`<button class="btn btn-ghost btn-sm" style="color:var(--orange)" onclick="requestVoidExpense(${e.id},'${e.desc}',${e.amount})">Request Void</button>`
+            :''
+      }</td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// KITCHEN MODULE (standalone P&L)
+// ═══════════════════════════════════════════════════════════
+function showKitTab(tab, el){
+  ['revenue','expenses','profit'].forEach(t=>{
+    const e=document.getElementById('kitTab-'+t);
+    if(e)e.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('#page-kitchen .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(tab==='revenue')loadKitRevenue();
+  if(tab==='expenses')loadKitExpenses();
+  if(tab==='profit'){loadKitPnl();document.getElementById('kitPnlDate').value=today();}
+}
+
+function loadKitchenKpis(){
+  const rev=DB.get('kitRevenue')||[];
+  const exp=DB.get('kitExpenses')||[];
+  const td=today(), mo=td.slice(0,7);
+  const todayRev=rev.filter(r=>r.date===td).reduce((a,r)=>a+r.amount,0);
+  const todayExp=exp.filter(e=>e.date===td).reduce((a,e)=>a+e.amount,0);
+  const monthRev=rev.filter(r=>r.date.startsWith(mo)).reduce((a,r)=>a+r.amount,0);
+  const monthExp=exp.filter(e=>e.date.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
+  document.getElementById('kitKpiRow').innerHTML=[
+    kpiCard("Today's Revenue",fmtRWF(todayRev),'Kitchen only','cyan','💰'),
+    kpiCard("Today's Expenses",fmtRWF(todayExp),'Kitchen costs','red','💸'),
+    kpiCard("Today's Profit",fmtRWF(todayRev-todayExp),(todayRev-todayExp)>=0?'Profitable':'Loss',(todayRev-todayExp)>=0?'green':'red','📈'),
+    kpiCard('Month Revenue',fmtRWF(monthRev),new Date().toLocaleDateString('en',{month:'long'}),'gold','📅'),
+  ].join('');
+}
+
+function saveKitRevenue(){
+  const amount=+document.getElementById('kitRevAmount').value||0;
+  if(amount<=0){toast('Enter a valid amount','error');return;}
+  const rev=DB.get('kitRevenue')||[];
+  rev.push({id:nextId('kit'),amount,date:document.getElementById('kitRevDate').value||today(),note:document.getElementById('kitRevNote').value||'Daily revenue',by:session.fullName});
+  DB.set('kitRevenue',rev);
+  document.getElementById('kitRevAmount').value=0;document.getElementById('kitRevNote').value='';
+  toast('✅ Kitchen revenue recorded!');loadKitRevenue();loadKitchenKpis();
+}
+function loadKitRevenue(){
+  const rev=DB.get('kitRevenue')||[];
+  const mo=today().slice(0,7);
+  const monthTotal=rev.filter(r=>r.date.startsWith(mo)).reduce((a,r)=>a+r.amount,0);
+  document.getElementById('kitRevMonthTotal').textContent=fmtRWF(monthTotal);
+  document.getElementById('kitRevenueBody').innerHTML=rev.slice().reverse().map(r=>`
+    <tr><td class="muted">${r.date}</td>
+    <td class="mono" style="font-weight:700;color:var(--cyan)">${fmtRWF(r.amount)}</td>
+    <td class="muted">${r.note}</td><td class="muted">${r.by}</td>
+    <td>${session.role==='Owner'
+      ?`<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteKitRev(${r.id})">🗑 Delete</button>`
+      :session.role==='Manager'
+        ?`<button class="btn btn-ghost btn-sm" style="color:var(--orange)" onclick="requestKitRevDelete(${r.id},'${(r.note||'').replace(/'/g,"\\'")}',${r.amount})">📤 Request Delete</button>`
+        :''
+    }</td></tr>
+  `).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">No revenue recorded yet</td></tr>';
+}
+function deleteKitRev(id){
+  confirm2('Delete this kitchen revenue entry?',()=>{
+    const rev=(DB.get('kitRevenue')||[]).filter(r=>r.id!==id);
+    DB.set('kitRevenue',rev);
+    auditAction('KITCHEN',`Deleted kitchen revenue entry #${id}`);
+    toast('Deleted','warning');loadKitRevenue();loadKitchenKpis();
+  });
+}
+function requestKitRevDelete(revId,note,amount){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>📤 Request Kitchen Revenue Deletion</h3>
+    <p style="font-size:13px;color:var(--muted);margin:10px 0 16px">Requesting to delete: <strong>${note}</strong> — ${fmtRWF(amount)}</p>
+    <div class="form-group">
+      <label class="form-label">Reason *</label>
+      <textarea class="form-input" id="voidReasonInput" rows="3" placeholder="Explain why this entry should be deleted…" style="resize:vertical"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="submitVoidRequest('kitrev',${revId},'${note}',${amount})">📤 Submit Request to Owner</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function saveKitExpense(){
+  const desc=document.getElementById('kitExpDesc').value.trim();
+  const amount=+document.getElementById('kitExpAmount').value||0;
+  if(!desc||amount<=0){toast('Fill all required fields','error');return;}
+  const exp=DB.get('kitExpenses')||[];
+  exp.push({id:nextId('exp'),desc,category:document.getElementById('kitExpCategory').value,amount,date:document.getElementById('kitExpDate').value||today(),by:session.fullName});
+  DB.set('kitExpenses',exp);
+  document.getElementById('kitExpDesc').value='';document.getElementById('kitExpAmount').value=0;
+  toast('✅ Kitchen expense recorded!');loadKitExpenses();loadKitchenKpis();
+}
+function loadKitExpenses(){
+  const exp=DB.get('kitExpenses')||[];
+  const mo=today().slice(0,7);
+  const monthTotal=exp.filter(e=>e.date.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
+  document.getElementById('kitExpMonthTotal').textContent=fmtRWF(monthTotal);
+  document.getElementById('kitExpensesBody').innerHTML=exp.slice().reverse().map(e=>`
+    <tr><td class="muted">${e.date}</td><td>${e.desc}</td>
+    <td><span class="badge badge-orange">${e.category}</span></td>
+    <td class="mono" style="font-weight:700;color:var(--red)">${fmtRWF(e.amount)}</td>
+    <td class="muted">${e.by}</td>
+    <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteKitExp(${e.id})">Delete</button></td></tr>
+  `).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No expenses recorded yet</td></tr>';
+}
+function deleteKitExp(id){
+  confirm2('Delete this kitchen expense?',()=>{
+    const exp=(DB.get('kitExpenses')||[]).filter(e=>e.id!==id);
+    DB.set('kitExpenses',exp);toast('Deleted','warning');loadKitExpenses();loadKitchenKpis();
+  });
+}
+
+function loadKitPnl(){
+  const period=document.getElementById('kitPnlPeriod').value;
+  const dateWrap=document.getElementById('kitPnlDateWrap');
+  dateWrap.style.display=period==='custom'?'flex':'none';
+  const rev=DB.get('kitRevenue')||[];
+  const exp=DB.get('kitExpenses')||[];
+  const td=today(), mo=td.slice(0,7);
+  let filtRev,filtExp,label;
+  if(period==='today'){filtRev=rev.filter(r=>r.date===td);filtExp=exp.filter(e=>e.date===td);label='Today — '+td;}
+  else if(period==='week'){const cutoff=new Date(Date.now()-7*86400000);filtRev=rev.filter(r=>new Date(r.date)>=cutoff);filtExp=exp.filter(e=>new Date(e.date)>=cutoff);label='Last 7 Days';}
+  else if(period==='month'){filtRev=rev.filter(r=>r.date.startsWith(mo));filtExp=exp.filter(e=>e.date.startsWith(mo));label=new Date().toLocaleDateString('en',{month:'long',year:'numeric'});}
+  else{const pick=document.getElementById('kitPnlDate').value||td;filtRev=rev.filter(r=>r.date===pick);filtExp=exp.filter(e=>e.date===pick);label='Date: '+pick;}
+  const totalRev=filtRev.reduce((a,r)=>a+r.amount,0);
+  const totalExp=filtExp.reduce((a,e)=>a+e.amount,0);
+  const profit=totalRev-totalExp;
+  const margin=totalRev>0?Math.round((profit/totalRev)*100):0;
+  document.getElementById('kitPnlContent').innerHTML=`
+    <div id="kitPnlPrintArea">
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px">
+        ${kpiCard('Total Revenue',fmtRWF(totalRev),label,'cyan','💰')}
+        ${kpiCard('Total Expenses',fmtRWF(totalExp),'Kitchen costs','red','💸')}
+        ${kpiCard('Net Profit',fmtRWF(profit),profit>=0?'✅ Profitable':'⚠️ Loss',profit>=0?'green':'red','📈')}
+        ${kpiCard('Profit Margin',margin+'%',profit>=0?'Good':'Negative',margin>=30?'green':margin>=10?'gold':'red','📊')}
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">💰 Revenue Entries (${filtRev.length})</div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Amount</th><th>Note</th></tr></thead>
+          <tbody>${filtRev.map(r=>`<tr><td class="muted">${r.date}</td><td class="mono" style="color:var(--cyan);font-weight:700">${fmtRWF(r.amount)}</td><td class="muted">${r.note}</td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px">No data</td></tr>'}</tbody>
+          <tfoot><tr style="border-top:2px solid var(--border)"><td style="font-weight:700">Total</td><td class="mono" style="font-weight:700;color:var(--cyan)">${fmtRWF(totalRev)}</td><td></td></tr></tfoot>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">💸 Expense Entries (${filtExp.length})</div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>${filtExp.map(e=>`<tr><td class="muted">${e.date}</td><td><span class="badge badge-orange">${e.category}</span></td><td class="mono" style="color:var(--red);font-weight:700">${fmtRWF(e.amount)}</td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px">No data</td></tr>'}</tbody>
+          <tfoot><tr style="border-top:2px solid var(--border)"><td style="font-weight:700">Total</td><td></td><td class="mono" style="font-weight:700;color:var(--red)">${fmtRWF(totalExp)}</td></tr></tfoot>
+          </table></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--muted)">Total Revenue</span><span class="mono" style="font-weight:700;color:var(--cyan)">${fmtRWF(totalRev)}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--muted)">Total Expenses</span><span class="mono" style="font-weight:700;color:var(--red)">− ${fmtRWF(totalExp)}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0"><span style="font-size:15px;font-weight:700">Net Profit</span><span class="mono" style="font-size:20px;font-weight:700;color:${profit>=0?'var(--green)':'var(--red)'}">${fmtRWF(profit)}</span></div>
+      </div>
+    </div>`;
+}
+
+function exportKitchenPDF(){
+  const period=document.getElementById('kitPnlPeriod').value;
+  const settings=DB.get('settings')||{};
+  const rev=DB.get('kitRevenue')||[];
+  const exp=DB.get('kitExpenses')||[];
+  const td=today(),mo=td.slice(0,7);
+  let filtRev,filtExp,label;
+  if(period==='today'){filtRev=rev.filter(r=>r.date===td);filtExp=exp.filter(e=>e.date===td);label='Today — '+td;}
+  else if(period==='week'){const c=new Date(Date.now()-7*86400000);filtRev=rev.filter(r=>new Date(r.date)>=c);filtExp=exp.filter(e=>new Date(e.date)>=c);label='Last 7 Days';}
+  else if(period==='month'){filtRev=rev.filter(r=>r.date.startsWith(mo));filtExp=exp.filter(e=>e.date.startsWith(mo));label=new Date().toLocaleDateString('en',{month:'long',year:'numeric'});}
+  else{const pick=document.getElementById('kitPnlDate').value||td;filtRev=rev.filter(r=>r.date===pick);filtExp=exp.filter(e=>e.date===pick);label='Date: '+pick;}
+  const totalRev=filtRev.reduce((a,r)=>a+r.amount,0);
+  const totalExp=filtExp.reduce((a,e)=>a+e.amount,0);
+  const profit=totalRev-totalExp;
+  const margin=totalRev>0?Math.round((profit/totalRev)*100):0;
+  printPDF(`🍳 Kitchen P&L Report — ${label}`,settings.barName||'BarMS Pro',`
+    <div class="section">
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-lbl">Total Revenue</div><div class="kpi-val cyan">${fmtRWF(totalRev)}</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Total Expenses</div><div class="kpi-val red">${fmtRWF(totalExp)}</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Net Profit</div><div class="kpi-val ${profit>=0?'green':'red'}">${fmtRWF(profit)}</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Profit Margin</div><div class="kpi-val">${margin}%</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Revenue Entries</h3>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Amount</th><th>Note</th></tr></thead>
+      <tbody>${filtRev.map(r=>`<tr><td>${r.date}</td><td class="num">${fmtRWF(r.amount)}</td><td>${r.note}</td></tr>`).join('')||'<tr><td colspan="3">No data</td></tr>'}</tbody>
+      <tfoot><tr><td><strong>Total</strong></td><td class="num"><strong>${fmtRWF(totalRev)}</strong></td><td></td></tr></tfoot></table></div>
+    </div>
+    <div class="section">
+      <h3>Expense Entries</h3>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
+      <tbody>${filtExp.map(e=>`<tr><td>${e.date}</td><td>${e.category}</td><td>${e.desc}</td><td class="num">${fmtRWF(e.amount)}</td></tr>`).join('')||'<tr><td colspan="4">No data</td></tr>'}</tbody>
+      <tfoot><tr><td colspan="3"><strong>Total</strong></td><td class="num"><strong>${fmtRWF(totalExp)}</strong></td></tr></tfoot></table></div>
+    </div>
+    <div class="summary-box">
+      <div class="sum-row"><span>Total Revenue</span><span class="cyan">${fmtRWF(totalRev)}</span></div>
+      <div class="sum-row"><span>Total Expenses</span><span class="red">− ${fmtRWF(totalExp)}</span></div>
+      <div class="sum-row total"><span>Net Profit</span><span class="${profit>=0?'green':'red'}">${fmtRWF(profit)}</span></div>
+    </div>
+  `);
+}
+
+// ═══════════════════════════════════════════════════════════
+// REPORTS — with date picker + PDF export
+// ═══════════════════════════════════════════════════════════
+let _reportType='daily';
+function switchReportTab(type, el){
+  _reportType=type;
+  document.querySelectorAll('#page-reports .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const dateWrap=document.getElementById('reportDateWrap');
+  const dateLabel=document.getElementById('reportDateLabel');
+  if(type==='daily'){
+    dateWrap.style.display='none';
+  } else if(type==='weekly'){
+    dateWrap.style.display='flex';
+    dateLabel.textContent='Pick any day in the week:';
+    if(!document.getElementById('reportDatePick').value)document.getElementById('reportDatePick').value=today();
+  } else {
+    dateWrap.style.display='flex';
+    dateLabel.textContent='Pick any day in the month:';
+    if(!document.getElementById('reportDatePick').value)document.getElementById('reportDatePick').value=today();
+  }
+  loadReport();
+}
+
+function loadReport(){
+  const type=_reportType;
+  const pickedDate=document.getElementById('reportDatePick').value||today();
+  const sales=DB.get('sales')||[];
+  const expenses=DB.get('expenses')||[];
+  const kitchen=DB.get('kitRevenue')||[];
+  const td=today();
+
+  let filtered_s,filtered_e,filtered_k,label;
+  if(type==='daily'){
+    filtered_s=sales.filter(s=>s.date===td&&!s.voided);
+    filtered_e=expenses.filter(e=>e.date===td);
+    filtered_k=kitchen.filter(k=>k.date===td);
+    label='Today — '+td;
+  } else if(type==='weekly'){
+    // week containing the picked date
+    const picked=new Date(pickedDate);
+    const dayOfWeek=picked.getDay();
+    const weekStart=new Date(picked);weekStart.setDate(picked.getDate()-dayOfWeek);
+    const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+    const wsStr=fmtDate(weekStart),weStr=fmtDate(weekEnd);
+    filtered_s=sales.filter(s=>s.date>=wsStr&&s.date<=weStr&&!s.voided);
+    filtered_e=expenses.filter(e=>e.date>=wsStr&&e.date<=weStr);
+    filtered_k=kitchen.filter(k=>k.date>=wsStr&&k.date<=weStr);
+    label=`Week of ${weekStart.toLocaleDateString('en',{month:'short',day:'numeric'})} – ${weekEnd.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}`;
+  } else {
+    // month containing the picked date
+    const mo=pickedDate.slice(0,7);
+    filtered_s=sales.filter(s=>s.date.startsWith(mo)&&!s.voided);
+    filtered_e=expenses.filter(e=>e.date.startsWith(mo));
+    filtered_k=kitchen.filter(k=>k.date.startsWith(mo));
+    label=new Date(pickedDate+'T00:00:00').toLocaleDateString('en',{month:'long',year:'numeric'});
+  }
+
+  const rev=filtered_s.reduce((a,s)=>a+s.total,0);
+  const kitRev=filtered_k.reduce((a,k)=>a+k.amount,0);
+  const exp=filtered_e.reduce((a,e)=>a+e.amount,0);
+  const profit=rev+kitRev-exp;
+
+  document.getElementById('reportContent').innerHTML=`
+    <div id="reportPrintArea">
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+        ${kpiCard('Bar Revenue',fmtRWF(rev),label,'gold','💵')}
+        ${kpiCard('Kitchen Revenue',fmtRWF(kitRev),label,'cyan','🍳')}
+        ${kpiCard('Total Expenses',fmtRWF(exp),label,'red','💸')}
+        ${kpiCard('Net Profit',fmtRWF(profit),profit>=0?'✅ Profitable':'⚠️ Loss',profit>=0?'green':'red','📈')}
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">📋 Sales by Product</div>
+          <div class="table-wrap"><table><thead><tr><th>Product</th><th>Qty</th><th>Revenue</th></tr></thead>
+          <tbody>${groupBy(filtered_s,'productName').map(g=>`<tr><td>${g.key}</td><td class="mono">${g.totalQty}</td><td class="mono" style="color:var(--green)">${fmtRWF(g.totalRev)}</td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px">No data</td></tr>'}</tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">💸 Expenses by Category</div>
+          <div class="table-wrap"><table><thead><tr><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>${groupByExp(filtered_e).map(g=>`<tr><td>${g.key}</td><td class="mono" style="color:var(--red)">${fmtRWF(g.total)}</td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:16px">No data</td></tr>'}</tbody></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Full Sales Log</div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Sold By</th></tr></thead>
+        <tbody>${filtered_s.slice().reverse().map(s=>`<tr><td class="muted">${s.date}</td><td>${s.productName}</td><td class="mono">${s.qty}</td><td class="mono">${fmtRWF(s.unitPrice)}</td><td class="mono" style="font-weight:700;color:var(--green)">${fmtRWF(s.total)}</td><td class="muted">${s.soldBy}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">No sales</td></tr>'}</tbody></table></div>
+      </div>
+    </div>`;
+}
+
+function exportReportPDF(){
+  const type=_reportType;
+  const pickedDate=document.getElementById('reportDatePick').value||today();
+  const settings=DB.get('settings')||{};
+  const sales=DB.get('sales')||[];
+  const expenses=DB.get('expenses')||[];
+  const kitchen=DB.get('kitRevenue')||[];
+  const td=today();
+
+  let filtered_s,filtered_e,filtered_k,label;
+  if(type==='daily'){
+    filtered_s=sales.filter(s=>s.date===td&&!s.voided);filtered_e=expenses.filter(e=>e.date===td);filtered_k=kitchen.filter(k=>k.date===td);label='Daily Report — '+td;
+  } else if(type==='weekly'){
+    const picked=new Date(pickedDate);const dow=picked.getDay();
+    const ws=new Date(picked);ws.setDate(picked.getDate()-dow);const we=new Date(ws);we.setDate(ws.getDate()+6);
+    const wsS=fmtDate(ws),weS=fmtDate(we);
+    filtered_s=sales.filter(s=>s.date>=wsS&&s.date<=weS&&!s.voided);filtered_e=expenses.filter(e=>e.date>=wsS&&e.date<=weS);filtered_k=kitchen.filter(k=>k.date>=wsS&&k.date<=weS);
+    label=`Weekly Report: ${ws.toLocaleDateString('en',{month:'short',day:'numeric'})} – ${we.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}`;
+  } else {
+    const mo=pickedDate.slice(0,7);
+    filtered_s=sales.filter(s=>s.date.startsWith(mo)&&!s.voided);filtered_e=expenses.filter(e=>e.date.startsWith(mo));filtered_k=kitchen.filter(k=>k.date.startsWith(mo));
+    label='Monthly Report — '+new Date(pickedDate+'T00:00:00').toLocaleDateString('en',{month:'long',year:'numeric'});
+  }
+  const rev=filtered_s.reduce((a,s)=>a+s.total,0);
+  const kitRev=filtered_k.reduce((a,k)=>a+k.amount,0);
+  const exp=filtered_e.reduce((a,e)=>a+e.amount,0);
+  const profit=rev+kitRev-exp;
+  const byProd=groupBy(filtered_s,'productName');
+  const byExp=groupByExp(filtered_e);
+
+  printPDF(label,settings.barName||'BarMS Pro',`
+    <div class="section">
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-lbl">Bar Revenue</div><div class="kpi-val">${fmtRWF(rev)}</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Kitchen Revenue</div><div class="kpi-val cyan">${fmtRWF(kitRev)}</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Expenses</div><div class="kpi-val red">${fmtRWF(exp)}</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Net Profit</div><div class="kpi-val ${profit>=0?'green':'red'}">${fmtRWF(profit)}</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Sales by Product</h3>
+      <div class="table-wrap"><table><thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+      <tbody>${byProd.map(g=>`<tr><td>${g.key}</td><td class="num">${g.totalQty}</td><td class="num">${fmtRWF(g.totalRev)}</td></tr>`).join('')||'<tr><td colspan="3">No data</td></tr>'}</tbody>
+      <tfoot><tr><td><strong>Total</strong></td><td></td><td class="num"><strong>${fmtRWF(rev)}</strong></td></tr></tfoot></table></div>
+    </div>
+    <div class="section">
+      <h3>Expenses by Category</h3>
+      <div class="table-wrap"><table><thead><tr><th>Category</th><th>Amount</th></tr></thead>
+      <tbody>${byExp.map(g=>`<tr><td>${g.key}</td><td class="num">${fmtRWF(g.total)}</td></tr>`).join('')||'<tr><td colspan="2">No data</td></tr>'}</tbody>
+      <tfoot><tr><td><strong>Total</strong></td><td class="num"><strong>${fmtRWF(exp)}</strong></td></tr></tfoot></table></div>
+    </div>
+    <div class="section">
+      <h3>Full Sales Log</h3>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Sold By</th></tr></thead>
+      <tbody>${filtered_s.slice().reverse().map(s=>`<tr><td>${s.date}</td><td>${s.productName}</td><td class="num">${s.qty}</td><td class="num">${fmtRWF(s.unitPrice)}</td><td class="num">${fmtRWF(s.total)}</td><td>${s.soldBy}</td></tr>`).join('')||'<tr><td colspan="6">No sales</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="summary-box">
+      <div class="sum-row"><span>Bar Revenue</span><span>${fmtRWF(rev)}</span></div>
+      <div class="sum-row"><span>Kitchen Revenue</span><span class="cyan">${fmtRWF(kitRev)}</span></div>
+      <div class="sum-row"><span>Expenses</span><span class="red">− ${fmtRWF(exp)}</span></div>
+      <div class="sum-row total"><span>Net Profit</span><span class="${profit>=0?'green':'red'}">${fmtRWF(profit)}</span></div>
+    </div>
+  `);
+}
+
+function groupBy(arr,key){
+  const map={};
+  for(const s of arr){
+    if(!map[s[key]])map[s[key]]={key:s[key],totalQty:0,totalRev:0};
+    map[s[key]].totalQty+=s.qty;map[s[key]].totalRev+=s.total;
+  }
+  return Object.values(map).sort((a,b)=>b.totalRev-a.totalRev);
+}
+function groupByExp(arr){
+  const map={};
+  for(const e of arr){if(!map[e.category])map[e.category]={key:e.category,total:0};map[e.category].total+=e.amount;}
+  return Object.values(map).sort((a,b)=>b.total-a.total);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PDF DOWNLOAD ENGINE — uses jsPDF + html2canvas
+// ═══════════════════════════════════════════════════════════
+function printPDF(title, barName, bodyHTML){
+  const settings = DB.get('settings')||{};
+  toast('⏳ Generating PDF, please wait…','success');
+
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#F8FAFF;font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1E3A8A;padding:32px;box-sizing:border-box;z-index:-1';
+  container.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#1E3A8A 0%,#2563EB 55%,#BFDBFE 100%);border-radius:14px;padding:20px 24px;margin-bottom:24px">
+      <div>
+        <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:.3px">🍺 ${barName}</div>
+        <div style="font-size:12px;color:rgba(219,234,254,.85);margin-top:3px">${settings.location||'Kigali, Rwanda'}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:700;color:#fff">${title}</div>
+        <div style="font-size:11px;color:rgba(219,234,254,.85);margin-top:4px">Generated: ${new Date().toLocaleString('en-RW',{dateStyle:'full',timeStyle:'short'})}</div>
+        <div style="font-size:11px;color:rgba(219,234,254,.85)">By: ${session.fullName} (${session.role})</div>
+      </div>
+    </div>
+    <style>
+      .section{margin-bottom:22px}
+      .section h3{font-size:11px;font-weight:700;color:#2563EB;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #BFDBFE;text-transform:uppercase;letter-spacing:.05em}
+      table{width:100%;border-collapse:collapse;font-size:11px}
+      thead th{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);padding:7px 10px;text-align:left;font-weight:700;color:#1E40AF;font-size:9px;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid #BFDBFE}
+      tbody td{padding:7px 10px;border-bottom:1px solid #EFF6FF;color:#1E3A8A}
+      tbody tr:nth-child(even) td{background:#F0F7FF}
+      tfoot td{padding:7px 10px;font-weight:700;border-top:2px solid #BFDBFE;background:#DBEAFE;color:#1E3A8A}
+      td.num{text-align:right;font-family:monospace}
+      .kpi-row{display:flex;gap:10px;margin-bottom:8px}
+      .kpi-box{flex:1;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-radius:10px;padding:12px;border-left:4px solid #2563EB}
+      .kpi-lbl{font-size:8px;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+      .kpi-val{font-size:15px;font-weight:800;color:#1E3A8A;font-family:monospace}
+      .kpi-val.green{color:#059669}.kpi-val.red{color:#F05C7A}.kpi-val.cyan{color:#0BBCD4}
+      .summary-box{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-radius:10px;padding:14px;margin-top:6px;border:2px solid #BFDBFE}
+      .sum-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid #BFDBFE;color:#1E3A8A}
+      .sum-row:last-child{border-bottom:none}
+      .sum-row.total{font-size:16px;font-weight:800;padding-top:10px;color:#1E3A8A}
+      .green{color:#059669}.red{color:#F05C7A}.cyan{color:#0BBCD4}
+    </style>
+    ${bodyHTML}
+    <div style="margin-top:28px;border-top:2px solid #BFDBFE;padding-top:12px;display:flex;justify-content:space-between;font-size:10px;color:#3B82F6">
+      <span>BarMS Pro — Bar Management System</span>
+      <span>Printed ${new Date().toLocaleDateString()}</span>
+    </div>`;
+  document.body.appendChild(container);
+
+  // Load html2canvas + jsPDF then render
+  function loadScript(src, cb){
+    const s = document.createElement('script');
+    s.src = src; s.onload = cb;
+    document.head.appendChild(s);
+  }
+
+  function doRender(){
+    html2canvas(container, {scale:2, useCORS:true, backgroundColor:'#ffffff'}).then(canvas=>{
+      const imgData = canvas.toDataURL('image/png');
+      const {jsPDF} = window.jspdf;
+      const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      let y = 0;
+      // Multi-page support
+      while(y < imgH){
+        if(y > 0) pdf.addPage();
+        pdf.addImage(imgData,'PNG', 0, -y, imgW, imgH);
+        y += pageH;
+      }
+      const filename = title.replace(/[^a-zA-Z0-9\s\-]/g,'').trim().replace(/\s+/g,'_') + '.pdf';
+      pdf.save(filename);
+      document.body.removeChild(container);
+      toast('✅ PDF downloaded!');
+    }).catch(err=>{
+      document.body.removeChild(container);
+      toast('Error generating PDF','error');
+      console.error(err);
+    });
+  }
+
+  // Load libraries if not already present
+  if(window.html2canvas && window.jspdf){
+    doRender();
+  } else {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', ()=>{
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', doRender);
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════
+function loadCharts(){
+  const sales=DB.get('sales')||[];
+  // Bar chart
+  const months=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date();d.setMonth(d.getMonth()-i);
+    const key=fmtDate(d).slice(0,7);const lbl=d.toLocaleDateString('en',{month:'short'});
+    const rev=sales.filter(s=>s.date.startsWith(key)&&!s.voided).reduce((a,s)=>a+s.total,0);
+    months.push({lbl,rev});
+  }
+  const max=Math.max(...months.map(m=>m.rev),1);
+  document.getElementById('chartBar1').innerHTML=months.map(m=>`
+    <div class="chart-col">
+      <div style="font-size:10px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);max-height:40px;overflow:hidden">${fmtRWF(m.rev)}</div>
+      <div class="chart-bar" style="height:${Math.round((m.rev/max)*120)}px;background:var(--gold);width:100%"></div>
+      <div class="chart-lbl">${m.lbl}</div>
+    </div>
+  `).join('');
+
+  // Pie chart
+  const prods=DB.get('products')||[];
+  const cats={};
+  for(const s of sales.filter(s=>!s.voided)){
+    const p=prods.find(x=>x.id===s.productId);
+    const cat=p?p.category:'Other';
+    cats[cat]=(cats[cat]||0)+s.total;
+  }
+  const catArr=Object.entries(cats).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+  const total=catArr.reduce((a,x)=>a+x.v,0)||1;
+  const colors=['#C8931A','#1E7A45','#C0392B','#1A5AA0','#0F7C75','#C86414','#6B3FA0'];
+  const canvas=document.getElementById('pieCanvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  let angle=-Math.PI/2;
+  catArr.forEach((item,i)=>{
+    const slice=(item.v/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(100,100);ctx.arc(100,100,90,angle,angle+slice);ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    angle+=slice;
+  });
+  // Legend
+  const lg=catArr.map((item,i)=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px"><div style="width:12px;height:12px;border-radius:2px;background:${colors[i%colors.length]};flex-shrink:0"></div><span>${item.k}</span><span style="margin-left:auto;font-family:'DM Mono',monospace;color:var(--muted)">${Math.round((item.v/total)*100)}%</span></div>`).join('');
+  canvas.insertAdjacentHTML('afterend',`<div style="margin-top:16px">${lg}</div>`);
+
+  // Line chart
+  drawLineChart(months);
+}
+function drawLineChart(months){
+  const sales=DB.get('sales')||[];
+  const expenses=DB.get('expenses')||[];
+  const canvas=document.getElementById('lineCanvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||800;canvas.height=200;
+  const W=canvas.width,H=200,pad=50;
+  ctx.clearRect(0,0,W,H);
+  const revData=months.map(m=>m.rev);
+  const allMonths=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date();d.setMonth(d.getMonth()-i);
+    const key=fmtDate(d).slice(0,7);
+    const exp=expenses.filter(e=>e.date.startsWith(key)).reduce((a,e)=>a+e.amount,0);
+    const rev=months[5-i]?.rev||0;
+    allMonths.push({rev,profit:Math.max(0,rev-exp),lbl:months[5-i]?.lbl||''});
+  }
+  const maxV=Math.max(...allMonths.map(m=>m.rev),1);
+  const xStep=(W-pad*2)/(allMonths.length-1||1);
+  function drawLine(data,color){
+    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';
+    data.forEach((v,i)=>{const x=pad+i*xStep;const y=H-pad-(v/maxV)*(H-pad*2);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.stroke();
+    data.forEach((v,i)=>{const x=pad+i*xStep;const y=H-pad-(v/maxV)*(H-pad*2);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();});
+  }
+  // Grid
+  ctx.strokeStyle='#E5E0D8';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=pad+(i/4)*(H-pad*2);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();}
+  allMonths.forEach((m,i)=>{const x=pad+i*xStep;ctx.fillStyle='#7A6E62';ctx.font='11px DM Sans';ctx.textAlign='center';ctx.fillText(m.lbl,x,H-10);});
+  drawLine(allMonths.map(m=>m.rev),'#C8931A');
+  drawLine(allMonths.map(m=>m.profit),'#1E7A45');
+  // Legend
+  ctx.fillStyle='#C8931A';ctx.fillRect(W-160,10,12,12);ctx.fillStyle='#1A1510';ctx.font='11px DM Sans';ctx.textAlign='left';ctx.fillText('Revenue',W-144,21);
+  ctx.fillStyle='#1E7A45';ctx.fillRect(W-160,30,12,12);ctx.fillStyle='#1A1510';ctx.fillText('Profit',W-144,41);
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMPLOYEES
+// ═══════════════════════════════════════════════════════════
+function showEmpTab(tab,el){
+  ['list','debts','salary'].forEach(t=>{const e=document.getElementById('empTab-'+t);if(e)e.style.display=t===tab?'block':'none';});
+  document.querySelectorAll('#page-employees .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(tab==='debts')loadDebts();
+  if(tab==='salary'){loadSalaryHistory();loadPayEmpSelect();}
+}
+let _editEmpId=0;
+function saveEmployee(){
+  const name=document.getElementById('empName').value.trim();
+  if(!name){toast('Name is required','error');return;}
+  const emps=DB.get('employees')||[];
+  const emp={fullName:name,position:document.getElementById('empPosition').value,phone:document.getElementById('empPhone').value,salary:+document.getElementById('empSalary').value||0,hireDate:today(),active:true};
+  if(_editEmpId){const idx=emps.findIndex(e=>e.id===_editEmpId);if(idx>=0){emps[idx]={...emps[idx],...emp};DB.set('employees',emps);toast('✅ Employee updated!');}}
+  else{emp.id=nextId('emp');emps.push(emp);DB.set('employees',emps);toast('✅ Employee added!');}
+  clearEmpForm();loadEmployees();
+}
+function editEmp(id){
+  const e=(DB.get('employees')||[]).find(x=>x.id===id);if(!e)return;
+  _editEmpId=id;
+  document.getElementById('empName').value=e.fullName;
+  document.getElementById('empPosition').value=e.position;
+  document.getElementById('empPhone').value=e.phone;
+  document.getElementById('empSalary').value=e.salary;
+  document.getElementById('empFormTitle').textContent='✏️ Edit Employee';
+}
+function clearEmpForm(){
+  _editEmpId=0;
+  ['empName','empPosition','empPhone'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('empSalary').value=0;
+  document.getElementById('empFormTitle').textContent='👤 Add Employee';
+}
+function loadEmployees(){
+  const emps=(DB.get('employees')||[]).filter(e=>e.active);
+  document.getElementById('empListBody').innerHTML=emps.map(e=>`
+    <tr><td style="font-weight:600">${e.fullName}</td><td class="muted">${e.position}</td>
+    <td class="muted">${e.phone}</td>
+    <td class="mono" style="color:var(--green)">${fmtRWF(e.salary)}</td>
+    <td class="muted">${e.hireDate}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="editEmp(${e.id})">✏️ Edit</button></td></tr>
+  `).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No employees yet</td></tr>';
+  // Populate debt & pay selects
+  const opts=emps.map(e=>`<option value="${e.id}">${e.fullName}</option>`).join('');
+  ['debtEmp','payEmp'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+function saveDebt(){
+  const empId=+document.getElementById('debtEmp').value;
+  const amount=+document.getElementById('debtAmount').value||0;
+  const note=document.getElementById('debtNote').value||'Advance';
+  if(amount<=0){toast('Enter a valid amount','error');return;}
+  const debts=DB.get('debts')||[];
+  const emp=(DB.get('employees')||[]).find(e=>e.id===empId);
+  debts.push({id:nextId('debt'),empId,empName:emp?.fullName||'',amount,note,date:today(),status:'Pending'});
+  DB.set('debts',debts);toast('✅ Debt recorded!');loadDebts();
+}
+function loadDebts(){
+  const debts=DB.get('debts')||[];
+  document.getElementById('debtListBody').innerHTML=debts.slice().reverse().map(d=>`
+    <tr><td style="font-weight:600">${d.empName}</td>
+    <td class="mono" style="color:var(--orange)">${fmtRWF(d.amount)}</td>
+    <td class="muted">${d.note}</td><td class="muted">${d.date}</td>
+    <td><span class="badge ${d.status==='Paid'?'badge-green':'badge-orange'}">${d.status}</span>
+    ${d.status!=='Paid'?`<button class="btn btn-ghost btn-sm" onclick="markDebtPaid(${d.id})" style="margin-left:6px">Mark Paid</button>`:''}</td></tr>
+  `).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">No debts recorded</td></tr>';
+}
+function markDebtPaid(id){
+  const debts=DB.get('debts')||[];
+  const idx=debts.findIndex(d=>d.id===id);
+  if(idx>=0){debts[idx].status='Paid';DB.set('debts',debts);toast('Marked as paid!');loadDebts();}
+}
+function onPayEmpChange(){
+  const id=+document.getElementById('payEmp').value;
+  const emp=(DB.get('employees')||[]).find(e=>e.id===id);
+  if(emp)document.getElementById('payAmount').value=emp.salary;
+}
+function loadPayEmpSelect(){const emps=(DB.get('employees')||[]).filter(e=>e.active);const opts=emps.map(e=>`<option value="${e.id}">${e.fullName}</option>`).join('');document.getElementById('payEmp').innerHTML=opts;onPayEmpChange();}
+function paySalary(){
+  const empId=+document.getElementById('payEmp').value;
+  const grossAmount=+document.getElementById('payAmount').value||0;
+  const note=document.getElementById('payNote').value||'Salary payment';
+  if(grossAmount<=0){toast('Enter a valid amount','error');return;}
+  const emp=(DB.get('employees')||[]).find(e=>e.id===empId);
+
+  // Check unpaid debts for this employee
+  const debts=DB.get('debts')||[];
+  const unpaidDebts=debts.filter(d=>d.empId===empId&&d.status==='Pending');
+  const totalDebt=unpaidDebts.reduce((a,d)=>a+d.amount,0);
+  const netPay=grossAmount-totalDebt;
+
+  if(totalDebt>0){
+    // Show breakdown before confirming
+    document.getElementById('modalContent').innerHTML=`
+      <h3>💰 Salary Payment Breakdown</h3>
+      <p style="font-size:13px;color:var(--muted);margin:10px 0 20px">Employee: <strong>${emp?.fullName||''}</strong></p>
+      <div style="background:var(--bg);border-radius:var(--r-sm);padding:16px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <span>Gross Salary</span><span style="font-weight:700;font-family:'DM Mono',monospace">${fmtRWF(grossAmount)}</span>
+        </div>
+        ${unpaidDebts.map(d=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--red)">
+          <span>− Debt: ${d.note}</span><span style="font-weight:700;font-family:'DM Mono',monospace">− ${fmtRWF(d.amount)}</span>
+        </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;font-weight:800;color:${netPay>=0?'var(--green)':'var(--red)'}">
+          <span>Net Pay</span><span style="font-family:'DM Mono',monospace">${fmtRWF(Math.max(0,netPay))}</span>
+        </div>
+        ${netPay<0?`<p style="font-size:11px;color:var(--orange);margin-top:4px">⚠️ Debts exceed salary. Only RWF 0 will be paid.</p>`:''}
+      </div>
+      <button class="btn btn-green" style="width:100%;justify-content:center" onclick="confirmPaySalary(${empId},${grossAmount},${totalDebt},'${note.replace(/'/g,"\\'")}')">✓ Confirm & Pay ${fmtRWF(Math.max(0,netPay))}</button>`;
+    document.getElementById('modalOverlay').classList.add('show');
+  } else {
+    confirmPaySalary(empId,grossAmount,0,note);
+  }
+}
+
+function confirmPaySalary(empId,gross,debtTotal,note){
+  closeModal();
+  const netPay=Math.max(0,gross-debtTotal);
+  const emp=(DB.get('employees')||[]).find(e=>e.id===empId);
+  const pays=DB.get('salaryPayments')||[];
+  pays.push({id:nextId('pay'),empId,empName:emp?.fullName||'',amount:netPay,gross,deductedDebt:debtTotal,note,date:today()});
+  DB.set('salaryPayments',pays);
+  // Mark all debts as paid
+  if(debtTotal>0){
+    const debts=DB.get('debts')||[];
+    debts.filter(d=>d.empId===empId&&d.status==='Pending').forEach(d=>d.status='Paid');
+    DB.set('debts',debts);
+  }
+  auditAction('SALARY',`Paid salary to ${emp?.fullName||''}: Gross ${fmtRWF(gross)}, Deductions ${fmtRWF(debtTotal)}, Net ${fmtRWF(netPay)}`);
+  toast(`✅ ${fmtRWF(netPay)} paid to ${emp?.fullName||''}${debtTotal>0?' ('+fmtRWF(debtTotal)+' debt deducted)':''}`);
+  loadSalaryHistory();loadDebts();
+}
+function loadSalaryHistory(){
+  const pays=DB.get('salaryPayments')||[];
+  document.getElementById('salaryHistoryBody').innerHTML=pays.slice().reverse().map(p=>`
+    <tr><td style="font-weight:600">${p.empName}</td>
+    <td class="mono" style="color:var(--green)">${fmtRWF(p.amount)}</td>
+    <td>${p.deductedDebt>0?`<span style="font-size:11px;color:var(--red)">−${fmtRWF(p.deductedDebt)} debt</span>`:'<span style="font-size:11px;color:var(--muted)">No deductions</span>'}</td>
+    <td class="muted">${p.note}</td><td class="muted">${p.date}</td></tr>
+  `).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">No salary payments yet</td></tr>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+function saveSettings(){
+  DB.set('settings',{barName:document.getElementById('setBarName').value,location:document.getElementById('setLocation').value,currency:document.getElementById('setCurrency').value,tax:+document.getElementById('setTax').value||0});
+  auditAction('SETTINGS','Updated bar settings');
+  toast('✅ Settings saved!');
+}
+function loadSettings(){
+  const s=DB.get('settings')||{};
+  document.getElementById('setBarName').value=s.barName||'BarMS Pro';
+  document.getElementById('setLocation').value=s.location||'Kigali, Rwanda';
+  document.getElementById('setCurrency').value=s.currency||'RWF';
+  document.getElementById('setTax').value=s.tax||0;
+  // Show/hide manager permissions panel
+  const panel=document.getElementById('mgrPermPanel');
+  if(panel)panel.style.display=session.role==='Owner'?'block':'none';
+}
+function addUser(){
+  const fullName=document.getElementById('newUserName').value.trim();
+  const username=document.getElementById('newUserUser').value.trim().toLowerCase();
+  const password=document.getElementById('newUserPass').value;
+  const role=document.getElementById('newUserRole').value;
+  if(!fullName||!username||!password){toast('Fill all user fields','error');return;}
+  const users=DB.get('users')||[];
+  if(users.find(u=>u.username===username)){toast('Username already exists','error');return;}
+  users.push({id:nextId('user'),fullName,username,password,role,active:true});
+  DB.set('users',users);
+  ['newUserName','newUserUser','newUserPass'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ User added!');loadUsers();
+}
+function loadUsers(){
+  const users=DB.get('users')||[];
+  document.getElementById('usersList').innerHTML=users.filter(u=>u.active).map(u=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:13px;font-weight:600">${u.fullName}</div><div style="font-size:11px;color:var(--muted)">${u.username} · ${u.role}</div></div>
+      ${session.role==='Owner'&&u.id!==session.userId?`<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="removeUser(${u.id})">Remove</button>`:''}
+    </div>
+  `).join('');
+}
+function removeUser(id){
+  if(id===session.userId){toast("Can't remove yourself",'error');return;}
+  confirm2('Remove this user?',()=>{
+    const users=DB.get('users')||[];
+    const idx=users.findIndex(u=>u.id===id);
+    if(idx>=0){users[idx].active=false;DB.set('users',users);toast('User removed','warning');loadUsers();}
+  });
+}
+function changePassword(){
+  const curr=document.getElementById('pwdCurrent').value;
+  const newPwd=document.getElementById('pwdNew').value;
+  if(!curr||!newPwd){toast('Fill both fields','error');return;}
+  const users=DB.get('users')||[];
+  const idx=users.findIndex(u=>u.id===session.userId);
+  if(idx<0||users[idx].password!==curr){toast('Current password incorrect','error');return;}
+  users[idx].password=newPwd;DB.set('users',users);
+  document.getElementById('pwdCurrent').value='';document.getElementById('pwdNew').value='';
+  toast('✅ Password changed!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+function updateNotifBadge(){
+  const notifs=DB.get('notifications')||[];
+  const unread=notifs.filter(n=>!n.read).length;
+  const dot=document.getElementById('notifDot');
+  if(dot)dot.style.display=unread>0?'block':'none';
+}
+function toggleNotif(){
+  const panel=document.getElementById('notifPanel');
+  const showing=panel.style.display==='block';
+  panel.style.display=showing?'none':'block';
+  if(!showing){
+    const notifs=DB.get('notifications')||[];
+    const typeColor={fraud:'var(--red)',warning:'var(--orange)',success:'var(--green)',info:'var(--blue)'};
+    document.getElementById('notifList').innerHTML=notifs.length?notifs.map(n=>`
+      <div class="notif-item" style="${!n.read?'background:rgba(139,92,246,.04)':''}">
+        <div class="notif-dot2" style="background:${typeColor[n.type]||'var(--blue)'}"></div>
+        <div style="flex:1">
+          <div class="notif-text" style="${n.type==='fraud'?'color:var(--red);font-weight:700':''}">${n.text}</div>
+          <div class="notif-time">${n.date||today()} · ${n.time||'—'}</div>
+        </div>
+        ${!n.read?'<div style="width:7px;height:7px;border-radius:50%;background:var(--purple);flex-shrink:0;margin-top:4px"></div>':''}
+      </div>
+    `).join(''):'<div style="padding:20px;text-align:center;font-size:12px;color:var(--muted)">No notifications</div>';
+  }
+  setTimeout(()=>document.addEventListener('click',closeNotifOutside,{once:true}),10);
+}
+function closeNotifOutside(e){
+  if(!document.getElementById('notifPanel').contains(e.target))document.getElementById('notifPanel').style.display='none';
+}
+function markAllRead(){
+  const notifs=DB.get('notifications')||[];
+  notifs.forEach(n=>n.read=true);DB.set('notifications',notifs);
+  document.getElementById('notifPanel').style.display='none';
+  updateNotifBadge();toast('All notifications marked as read');
+}
+function checkLowStock(){
+  const prods=(DB.get('products')||[]).filter(p=>p.active&&p.stock<=p.alert);
+  if(prods.length>0){
+    const notifs=DB.get('notifications')||[];
+    const td=today();
+    let changed=false;
+    for(const p of prods){
+      // Only alert once per product per day
+      const alreadyToday=notifs.find(n=>n.text.includes(p.name)&&n.date===td&&!n.read);
+      if(!alreadyToday){
+        const timeStr=new Date().toLocaleTimeString('en-RW',{hour:'2-digit',minute:'2-digit'});
+        notifs.unshift({id:Date.now()+Math.random(),text:`${p.name} is low — only ${p.stock} ${p.unit} remaining`,type:'warning',read:false,time:timeStr,date:td,icon:'⚠️'});
+        changed=true;
+      }
+    }
+    if(changed){DB.set('notifications',notifs);updateNotifBadge();showPopupNotif(`${prods.length} product(s) running low on stock`,'warning','⚠️');}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// END OF DAY SUMMARY
+// ═══════════════════════════════════════════════════════════
+function showSummary(){
+  const sales=DB.get('sales')||[];
+  const expenses=DB.get('expenses')||[];
+  const kitRevenue=DB.get('kitRevenue')||[];
+  const kitExpenses=DB.get('kitExpenses')||[];
+  const td=today();
+  const ts=sales.filter(s=>s.date===td&&!s.voided);
+  const te=expenses.filter(e=>e.date===td);
+  const tk=kitRevenue.filter(k=>k.date===td);
+  const tke=kitExpenses.filter(k=>k.date===td);
+  const barRev=ts.reduce((a,s)=>a+s.total,0);
+  const kitRev=tk.reduce((a,k)=>a+k.amount,0);
+  const barExp=te.reduce((a,e)=>a+e.amount,0);
+  const kitExp=tke.reduce((a,k)=>a+k.amount,0);
+  const barProfit=barRev-barExp;
+  const kitProfit=kitRev-kitExp;
+  document.getElementById('modalContent').innerHTML=`
+    <h3>📋 End of Day Summary</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:20px">${new Date().toLocaleDateString('en-RW',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
+    <div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">🍺 Bar</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+      ${kpiCard('Bar Revenue',fmtRWF(barRev),`${ts.length} transactions`,'gold','💵')}
+      ${kpiCard('Bar Expenses',fmtRWF(barExp),'Today','red','💸')}
+      ${kpiCard('Bar Profit',fmtRWF(barProfit),barProfit>=0?'Profitable':'Loss',barProfit>=0?'green':'red','📈')}
+    </div>
+    <div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">🍳 Kitchen</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      ${kpiCard('Kitchen Revenue',fmtRWF(kitRev),'Today','cyan','💰')}
+      ${kpiCard('Kitchen Expenses',fmtRWF(kitExp),'Today','orange','💸')}
+      ${kpiCard('Kitchen Profit',fmtRWF(kitProfit),kitProfit>=0?'Profitable':'Loss',kitProfit>=0?'green':'red','📈')}
+    </div>
+    <div style="background:var(--bg);border-radius:var(--r-sm);padding:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:14px;font-weight:700">Combined Net Profit</span>
+      <span style="font-size:20px;font-weight:800;font-family:'DM Mono',monospace;color:${(barProfit+kitProfit)>=0?'var(--green)':'var(--red)'}">${fmtRWF(barProfit+kitProfit)}</span>
+    </div>
+    <hr class="divider"/>
+    <div style="font-size:13px;color:var(--muted);text-align:center">Great work today! See you tomorrow. 🍺</div>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════════
+function showSearch(){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>🔍 Global Search</h3>
+    <input class="form-input" id="searchInput" placeholder="Search products, sales…" oninput="runSearch(this.value)" style="margin:12px 0;width:100%"/>
+    <div id="searchResults" style="max-height:300px;overflow-y:auto"></div>`;
+  document.getElementById('modalOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('searchInput')?.focus(),100);
+}
+function runSearch(q){
+  if(!q){document.getElementById('searchResults').innerHTML='';return;}
+  const prods=(DB.get('products')||[]).filter(p=>p.name.toLowerCase().includes(q.toLowerCase()));
+  const sales=(DB.get('sales')||[]).filter(s=>s.productName.toLowerCase().includes(q.toLowerCase()));
+  let html='';
+  if(prods.length)html+=`<div style="font-size:11px;font-weight:700;color:var(--muted);margin:12px 0 6px">Products (${prods.length})</div>`+prods.map(p=>`<div style="padding:8px;background:var(--bg);border-radius:var(--r-sm);margin-bottom:4px;font-size:13px"><strong>${p.name}</strong> — ${fmtRWF(p.sellPrice)} · ${p.stock} in stock</div>`).join('');
+  if(sales.length)html+=`<div style="font-size:11px;font-weight:700;color:var(--muted);margin:12px 0 6px">Sales (${sales.length})</div>`+sales.slice(0,10).map(s=>`<div style="padding:8px;background:var(--bg);border-radius:var(--r-sm);margin-bottom:4px;font-size:13px">${s.date} — ${s.productName} ×${s.qty} = ${fmtRWF(s.total)}</div>`).join('');
+  if(!html)html='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No results found</div>';
+  document.getElementById('searchResults').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// BACKUP & RESTORE
+// ═══════════════════════════════════════════════════════════
+function backupData(){
+  const keys=['users','products','sales','stockMovements','expenses','kitRevenue','kitExpenses','employees','debts','salaryPayments','notifications','settings','nextId','custDebts','voidRequests'];
+  const backup={version:'BarMS_Pro_v1',exportedAt:new Date().toISOString(),exportedBy:session.fullName,data:{}};
+  keys.forEach(k=>{backup.data[k]=DB.get(k)||[];});
+  const json=JSON.stringify(backup,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`BarMS_Backup_${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('✅ Backup downloaded!');
+  document.getElementById('backupStatus').textContent='Last backup: '+new Date().toLocaleString();
+}
+function restoreData(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const backup=JSON.parse(e.target.result);
+      if(!backup.version||!backup.data)throw new Error('Invalid backup file');
+      confirm2(`Restore backup from ${backup.exportedAt?.split('T')[0]||'unknown date'}?\n\nThis will OVERWRITE all current data. Make sure to backup first!`,()=>{
+        Object.entries(backup.data).forEach(([k,v])=>DB.set(k,v));
+        toast('✅ Data restored! Reloading…');
+        setTimeout(()=>location.reload(),1500);
+      });
+    }catch(err){toast('Invalid backup file — could not restore','error');}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// ═══════════════════════════════════════════════════════════
+// POPUP NOTIFICATION ENGINE
+// ═══════════════════════════════════════════════════════════
+let _popupQueue=[];let _popupShowing=false;
+function showPopupNotif(text,type='info',icon='🔔'){
+  if(session.role==='Bartender')return;
+  _popupQueue.push({text,type,icon});
+  if(!_popupShowing)_nextPopup();
+}
+function _nextPopup(){
+  if(!_popupQueue.length){_popupShowing=false;return;}
+  _popupShowing=true;
+  const {text,type,icon}=_popupQueue.shift();
+  // Play sound
+  playSound(type==='fraud'?'fraud':type==='warning'?'warning':'success');
+  const el=document.createElement('div');
+  el.className=`notif-popup ${type==='fraud'?'fraud':type==='warning'?'warning':type==='success'?'success':''}`;
+  el.innerHTML=`<div class="notif-popup-icon">${icon}</div>
+    <div class="notif-popup-body"><p>${text}</p><span>${new Date().toLocaleTimeString()}</span></div>
+    <div class="notif-popup-close" onclick="this.parentElement.remove();_nextPopup()">✕</div>`;
+  // Stack below existing popups
+  const existing=document.querySelectorAll('.notif-popup').length;
+  el.style.top=(70+existing*90)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>{
+    el.style.animation='slideOutRight .3s ease forwards';
+    setTimeout(()=>{el.remove();_nextPopup();},300);
+  },5000);
+}
+
+function addNotification(text,type='info',icon='🔔'){
+  const notifs=DB.get('notifications')||[];
+  // Deduplicate: don't add same fraud alert twice in same day
+  const td=today();
+  if(type==='fraud'&&notifs.find(n=>n.text===text&&n.date===td)){return;}
+  const timeStr=new Date().toLocaleTimeString('en-RW',{hour:'2-digit',minute:'2-digit'});
+  notifs.unshift({id:Date.now(),text,type,read:false,time:timeStr,date:td,icon});
+  // Keep last 50 notifications
+  if(notifs.length>50)notifs.splice(50);
+  DB.set('notifications',notifs);
+  updateNotifBadge();
+  showPopupNotif(text,type,icon);
+}
+
+// ═══════════════════════════════════════════════════════════
+// VOID REQUESTS — sale & expense
+// ═══════════════════════════════════════════════════════════
+function requestVoidSale(saleId,productName,amount){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>🚫 Request Sale Void</h3>
+    <p style="font-size:13px;color:var(--muted);margin:10px 0 16px">You are requesting to void: <strong>${productName}</strong> — ${fmtRWF(amount)}</p>
+    <div class="form-group">
+      <label class="form-label">Reason for Void *</label>
+      <textarea class="form-input" id="voidReasonInput" rows="3" placeholder="Explain why this sale should be voided…" style="resize:vertical"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="submitVoidRequest('sale',${saleId},'${productName}',${amount})">📤 Submit Request to Owner</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function requestVoidExpense(expId,desc,amount){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>🚫 Request Expense Void</h3>
+    <p style="font-size:13px;color:var(--muted);margin:10px 0 16px">You are requesting to void expense: <strong>${desc}</strong> — ${fmtRWF(amount)}</p>
+    <div class="form-group">
+      <label class="form-label">Reason for Void *</label>
+      <textarea class="form-input" id="voidReasonInput" rows="3" placeholder="Explain why this expense should be voided…" style="resize:vertical"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="submitVoidRequest('expense',${expId},'${desc}',${amount})">📤 Submit Request to Owner</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function submitVoidRequest(type,refId,label,amount){
+  const reason=document.getElementById('voidReasonInput')?.value?.trim();
+  if(!reason){toast('Please enter a reason','error');return;}
+  const reqs=DB.get('voidRequests')||[];
+  reqs.push({id:nextId('sale'),type,refId,label,amount,reason,requestedBy:session.fullName,date:today(),status:'Pending'});
+  DB.set('voidRequests',reqs);
+  closeModal();
+  toast('✅ Void request sent to Owner for approval');
+  addNotification(`🚫 ${session.fullName} requested void of "${label}" (${fmtRWF(amount)}). Reason: ${reason}`,'warning','🚫');
+  updateVoidBadge();
+}
+
+function voidSale(id){
+  confirm2('Are you sure you want to void this sale? Stock will be restored.',()=>{
+    const sales=DB.get('sales')||[];
+    const s=sales.find(x=>x.id===id);if(!s)return;
+    s.voided=true;DB.set('sales',sales);
+    const prods=DB.get('products')||[];
+    const idx=prods.findIndex(p=>p.id===s.productId);
+    if(idx>=0){prods[idx].stock+=s.qty;DB.set('products',prods);}
+    toast('Sale voided. Stock restored.','warning');
+    auditAction('VOID',`Voided sale of ${s.productName} (${fmtRWF(s.total)})`);
+    loadSalesHistory(0,null);
+    runFraudCheck();
+  });
+}
+
+function voidExpense(id){
+  confirm2('Void this expense?',()=>{
+    const expenses=DB.get('expenses')||[];
+    const idx=expenses.findIndex(e=>e.id===id);
+    if(idx>=0){expenses[idx].voided=true;DB.set('expenses',expenses);}
+    toast('Expense voided','warning');loadExpenses();
+  });
+}
+
+function approveVoidRequest(reqId){
+  const reqs=DB.get('voidRequests')||[];
+  const req=reqs.find(r=>r.id===reqId);if(!req)return;
+  req.status='Approved';req.approvedBy=session.fullName;req.approvedDate=today();
+  DB.set('voidRequests',reqs);
+  // Execute the actual void
+  if(req.type==='sale'){
+    const sales=DB.get('sales')||[];
+    const s=sales.find(x=>x.id===req.refId);
+    if(s){s.voided=true;DB.set('sales',sales);
+      const prods=DB.get('products')||[];
+      const idx=prods.findIndex(p=>p.id===s.productId);
+      if(idx>=0){prods[idx].stock+=s.qty;DB.set('products',prods);}
+    }
+  } else if(req.type==='kitrev'){
+    const rev=(DB.get('kitRevenue')||[]).filter(r=>r.id!==req.refId);
+    DB.set('kitRevenue',rev);
+    auditAction('KITCHEN',`Owner approved deletion of kitchen revenue "${req.label}"`);
+  } else {
+    const expenses=DB.get('expenses')||[];
+    const idx=expenses.findIndex(e=>e.id===req.refId);
+    if(idx>=0){expenses[idx].voided=true;DB.set('expenses',expenses);}
+  }
+  toast('✅ Void approved and executed');
+  addNotification(`✅ Owner approved void of "${req.label}"`, 'success','✅');
+  loadVoidRequests();updateVoidBadge();
+}
+
+function rejectVoidRequest(reqId){
+  const reqs=DB.get('voidRequests')||[];
+  const req=reqs.find(r=>r.id===reqId);if(!req)return;
+  req.status='Rejected';req.approvedBy=session.fullName;req.approvedDate=today();
+  DB.set('voidRequests',reqs);
+  toast('Void request rejected','warning');
+  addNotification(`❌ Owner rejected void of "${req.label}"`, 'warning','❌');
+  loadVoidRequests();updateVoidBadge();
+}
+
+function loadVoidRequests(){
+  const reqs=DB.get('voidRequests')||[];
+  const isOwner=session.role==='Owner';
+  // Sales voids
+  const salesReqs=reqs.filter(r=>r.type==='sale');
+  document.getElementById('voidSalesBody').innerHTML=salesReqs.length?salesReqs.slice().reverse().map(r=>`
+    <tr>
+      <td class="mono">#${r.refId}</td><td>${r.label}</td>
+      <td class="mono" style="color:var(--red)">${fmtRWF(r.amount)}</td>
+      <td class="muted">${r.requestedBy}</td>
+      <td style="max-width:200px;font-size:12px;color:var(--muted)">${r.reason}</td>
+      <td class="muted">${r.date}</td>
+      <td><span class="badge ${r.status==='Approved'?'badge-green':r.status==='Rejected'?'badge-red':'badge-orange'}">${r.status}</span></td>
+      <td>${r.status==='Pending'&&isOwner?`<button class="btn btn-green btn-sm" onclick="approveVoidRequest(${r.id})">✓ Approve</button> <button class="btn btn-red btn-sm" onclick="rejectVoidRequest(${r.id})">✕ Reject</button>`:'—'}</td>
+    </tr>`).join('')
+    :'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No void requests</td></tr>';
+  // Expense voids
+  const expReqs=reqs.filter(r=>r.type==='expense');
+  document.getElementById('voidExpBody').innerHTML=expReqs.length?expReqs.slice().reverse().map(r=>`
+    <tr>
+      <td>${r.label}</td>
+      <td class="mono" style="color:var(--red)">${fmtRWF(r.amount)}</td>
+      <td class="muted">${r.requestedBy}</td>
+      <td style="max-width:200px;font-size:12px;color:var(--muted)">${r.reason}</td>
+      <td class="muted">${r.date}</td>
+      <td><span class="badge ${r.status==='Approved'?'badge-green':r.status==='Rejected'?'badge-red':'badge-orange'}">${r.status}</span></td>
+      <td>${r.status==='Pending'&&isOwner?`<button class="btn btn-green btn-sm" onclick="approveVoidRequest(${r.id})">✓ Approve</button> <button class="btn btn-red btn-sm" onclick="rejectVoidRequest(${r.id})">✕ Reject</button>`:'—'}</td>
+    </tr>`).join('')
+    :'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">No expense void requests</td></tr>';
+  updateVoidBadge();
+}
+
+function showVoidTab(tab,el){
+  ['sales','expenses'].forEach(t=>{const e=document.getElementById('voidTab-'+t);if(e)e.style.display=t===tab?'block':'none';});
+  document.querySelectorAll('#page-voidreqs .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+
+function updateVoidBadge(){
+  const reqs=DB.get('voidRequests')||[];
+  const pending=reqs.filter(r=>r.status==='Pending').length;
+  const badge=document.getElementById('voidReqBadge');
+  if(badge){badge.textContent=pending;badge.style.display=pending>0?'inline':'none';}
+}
+
+// ═══════════════════════════════════════════════════════════
+// CUSTOMER DEBTS
+// ═══════════════════════════════════════════════════════════
+function saveCustDebt(){
+  const name=document.getElementById('cdName').value.trim();
+  const amount=+document.getElementById('cdAmount').value||0;
+  if(!name||amount<=0){toast('Customer name and amount are required','error');return;}
+  const debts=DB.get('custDebts')||[];
+  debts.push({
+    id:nextId('sale'),name,phone:document.getElementById('cdPhone').value,
+    amount,desc:document.getElementById('cdDesc').value||'',
+    date:document.getElementById('cdDate').value||today(),
+    paid:false,paidDate:null,recordedBy:session.fullName
+  });
+  DB.set('custDebts',debts);
+  ['cdName','cdPhone','cdDesc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cdAmount').value=0;
+  toast(`✅ Debt recorded for ${name}`);
+  loadCustDebts();
+}
+
+function markDebtPaidCust(id){
+  const debts=DB.get('custDebts')||[];
+  const idx=debts.findIndex(d=>d.id===id);
+  if(idx>=0){debts[idx].paid=true;debts[idx].paidDate=today();DB.set('custDebts',debts);}
+  toast('✅ Debt marked as paid!');loadCustDebts();
+}
+
+function deleteCustDebt(id){
+  confirm2('Delete this debt record?',()=>{
+    DB.set('custDebts',(DB.get('custDebts')||[]).filter(d=>d.id!==id));
+    toast('Deleted','warning');loadCustDebts();
+  });
+}
+
+function loadCustDebts(){
+  const debts=DB.get('custDebts')||[];
+  const unpaid=debts.filter(d=>!d.paid);
+  const paid=debts.filter(d=>d.paid);
+  const unpaidTotal=unpaid.reduce((a,d)=>a+d.amount,0);
+  const paidTotal=paid.reduce((a,d)=>a+d.amount,0);
+  document.getElementById('cdUnpaidTotal').textContent=fmtRWF(unpaidTotal);
+  document.getElementById('cdPaidTotal').textContent=fmtRWF(paidTotal);
+  document.getElementById('cdUnpaidBody').innerHTML=unpaid.slice().reverse().map(d=>`
+    <tr>
+      <td style="font-weight:600">${d.name}</td>
+      <td class="muted">${d.phone||'—'}</td>
+      <td class="mono" style="font-weight:700;color:var(--red)">${fmtRWF(d.amount)}</td>
+      <td class="muted">${d.date}</td>
+      <td class="muted" style="font-size:12px">${d.desc||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-green btn-sm" onclick="markDebtPaidCust(${d.id})">✓ Paid</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteCustDebt(${d.id})" style="color:var(--red)">Delete</button>
+      </td>
+    </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No unpaid debts ✅</td></tr>';
+  document.getElementById('cdPaidBody').innerHTML=paid.slice().reverse().map(d=>`
+    <tr>
+      <td style="font-weight:600">${d.name}</td>
+      <td class="mono" style="color:var(--green)">${fmtRWF(d.amount)}</td>
+      <td class="muted">${d.date}</td>
+      <td class="muted">${d.paidDate||'—'}</td>
+    </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">No paid debts yet</td></tr>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// FRAUD DETECTION — auto-monitor and alert owner
+// ═══════════════════════════════════════════════════════════
+function runFraudCheck(){
+  if(session.role==='Bartender')return;
+  const sales=DB.get('sales')||[];
+  const notifs=DB.get('notifications')||[];
+  const td=today();
+  const yesterday=fmtDate(new Date(Date.now()-86400000));
+
+  // Only fire each fraud type ONCE per day
+  const fraudToday=notifs.filter(n=>n.type==='fraud'&&n.date===td).map(n=>n.fraudKey||'');
+
+  // 1. Too many voids — only if ≥5 voids AND ≥40% of sales
+  const todayVoids=sales.filter(s=>s.voided&&s.date===td).length;
+  const todayTotal=sales.filter(s=>s.date===td).length;
+  if(todayVoids>=5&&todayTotal>0){
+    const voidPct=Math.round((todayVoids/todayTotal)*100);
+    if(voidPct>=40&&!fraudToday.includes('voids')){
+      const timeStr=new Date().toLocaleTimeString('en-RW',{hour:'2-digit',minute:'2-digit'});
+      const notif={id:Date.now(),text:`🚨 FRAUD ALERT: ${todayVoids} voids today (${voidPct}% of sales). Possible manipulation!`,type:'fraud',read:false,time:timeStr,date:td,icon:'🚨',fraudKey:'voids'};
+      notifs.unshift(notif);DB.set('notifications',notifs);
+      updateNotifBadge();showPopupNotif(notif.text,'fraud','🚨');
+    }
+  }
+
+  // 2. Revenue drop — only if yesterday had data and drop is ≥50%
+  const todayRev=sales.filter(s=>s.date===td&&!s.voided).reduce((a,s)=>a+s.total,0);
+  const yestRev=sales.filter(s=>s.date===yesterday&&!s.voided).reduce((a,s)=>a+s.total,0);
+  if(yestRev>5000&&todayRev>0){
+    const drop=((yestRev-todayRev)/yestRev)*100;
+    if(drop>=50&&!fraudToday.includes('revdrop')){
+      const timeStr=new Date().toLocaleTimeString('en-RW',{hour:'2-digit',minute:'2-digit'});
+      const notif={id:Date.now()+1,text:`🚨 FRAUD ALERT: Revenue dropped ${Math.round(drop)}% vs yesterday. Was ${fmtRWF(yestRev)}, now ${fmtRWF(todayRev)}.`,type:'fraud',read:false,time:timeStr,date:td,icon:'🚨',fraudKey:'revdrop'};
+      notifs.unshift(notif);DB.set('notifications',notifs);
+      updateNotifBadge();showPopupNotif(notif.text,'fraud','🚨');
+    }
+  }
+}
+
+function runPeriodicFraudCheck(){
+  if(session.role!=='Bartender') runFraudCheck();
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUDIT LOG SYSTEM
+// ═══════════════════════════════════════════════════════════
+function auditAction(type, details){
+  const log=DB.get('auditLog')||[];
+  log.unshift({
+    id:Date.now(),type,details,
+    user:session.fullName,role:session.role,
+    date:today(),time:now(),ts:Date.now()
+  });
+  // Keep last 1000 entries
+  if(log.length>1000)log.splice(1000);
+  DB.set('auditLog',log);
+}
+
+function loadAuditLog(){
+  const log=DB.get('auditLog')||[];
+  const typeFilter=document.getElementById('auditFilter')?.value||'';
+  const userFilter=document.getElementById('auditUserFilter')?.value||'';
+  const dateFilter=document.getElementById('auditDate')?.value||'';
+
+  // Populate user filter dropdown
+  const users=[...new Set(log.map(l=>l.user))];
+  const uSel=document.getElementById('auditUserFilter');
+  if(uSel&&uSel.options.length<=1){
+    users.forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;uSel.appendChild(o);});
+  }
+
+  let filtered=log;
+  if(typeFilter) filtered=filtered.filter(l=>l.type===typeFilter);
+  if(userFilter) filtered=filtered.filter(l=>l.user===userFilter);
+  if(dateFilter) filtered=filtered.filter(l=>l.date===dateFilter);
+
+  document.getElementById('auditCount').textContent=`${filtered.length} records`;
+
+  const typeColors={SALE:'badge-green',VOID:'badge-red',STOCK:'badge-cyan',PRICE:'badge-gold',LOGIN:'badge-blue',EXPENSE:'badge-orange',PRODUCT:'badge-purple',SETTINGS:'badge-blue',FRAUD:'badge-red'};
+  document.getElementById('auditBody').innerHTML=filtered.map(l=>`
+    <tr>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${l.date} ${l.time}</td>
+      <td style="font-weight:600">${l.user}</td>
+      <td><span class="badge badge-purple" style="font-size:10px">${l.role}</span></td>
+      <td><span class="badge ${typeColors[l.type]||'badge-blue'}" style="font-size:10px">${l.type}</span></td>
+      <td style="font-size:12px;color:var(--muted);max-width:300px">${l.details}</td>
+      <td></td>
+    </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">No audit records yet</td></tr>';
+}
+
+function clearAuditFilter(){
+  document.getElementById('auditFilter').value='';
+  document.getElementById('auditUserFilter').value='';
+  document.getElementById('auditDate').value='';
+  loadAuditLog();
+}
+
+// ═══════════════════════════════════════════════════════════
+// MANAGER PERMISSIONS
+// ═══════════════════════════════════════════════════════════
+const PERM_LABELS={
+  canViewReports:'📈 View Reports & Charts',
+  canEditStock:'📦 Edit Stock (add/remove)',
+  canEditProducts:'📋 Manage Products & Prices',
+  canViewEmployees:'👥 View Employees',
+  canViewAudit:'📋 View Audit Log',
+};
+
+function loadMgrPermissions(){
+  const panel=document.getElementById('mgrPermPanel');
+  if(!panel)return;
+  if(session.role!=='Owner'){panel.style.display='none';return;}
+  panel.style.display='block';
+  const perms=DB.get('mgrPermissions')||getDefaultPerms();
+  document.getElementById('mgrPermList').innerHTML=Object.entries(PERM_LABELS).map(([key,label])=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${label}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Managers can ${perms[key]?'✅ access':'❌ not access'} this</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer">
+        <input type="checkbox" ${perms[key]?'checked':''} onchange="togglePerm('${key}',this.checked)"
+          style="opacity:0;width:0;height:0;position:absolute"/>
+        <div style="position:absolute;inset:0;background:${perms[key]?'var(--green)':'var(--border-dk)'};border-radius:24px;transition:.3s">
+          <div style="position:absolute;top:3px;left:${perms[key]?'23px':'3px'};width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+        </div>
+      </label>
+    </div>`).join('');
+}
+
+function togglePerm(key,val){
+  const perms=DB.get('mgrPermissions')||getDefaultPerms();
+  perms[key]=val;
+  DB.set('mgrPermissions',perms);
+  auditAction('SETTINGS',`Manager permission "${PERM_LABELS[key]}" set to ${val?'ON':'OFF'}`);
+  toast(`✅ Permission updated`);
+  loadMgrPermissions();
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICATION SOUNDS
+// ═══════════════════════════════════════════════════════════
+function playSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    if(type==='fraud'){
+      // Urgent repeated beeps
+      osc.frequency.setValueAtTime(880,ctx.currentTime);
+      osc.frequency.setValueAtTime(440,ctx.currentTime+.15);
+      osc.frequency.setValueAtTime(880,ctx.currentTime+.3);
+      osc.frequency.setValueAtTime(440,ctx.currentTime+.45);
+      gain.gain.setValueAtTime(.4,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.7);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+.7);
+    } else if(type==='warning'){
+      // Low stock — 2 beeps
+      osc.frequency.setValueAtTime(660,ctx.currentTime);
+      osc.frequency.setValueAtTime(440,ctx.currentTime+.2);
+      gain.gain.setValueAtTime(.25,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.5);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+.5);
+    } else {
+      // Success — pleasant ascending tone
+      osc.frequency.setValueAtTime(440,ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(660,ctx.currentTime+.2);
+      gain.gain.setValueAtTime(.2,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.4);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+.4);
+    }
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════
+// MANAGER PRICE CHANGE WITH REASON
+// ═══════════════════════════════════════════════════════════
+function requestPriceChange(productId, productName, currentPrice){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>💲 Change Product Price</h3>
+    <p style="font-size:13px;color:var(--muted);margin:10px 0 16px">Product: <strong>${productName}</strong> — Current: <strong>${fmtRWF(currentPrice)}</strong></p>
+    <div class="form-group">
+      <label class="form-label">New Price (RWF) *</label>
+      <input type="number" class="form-input" id="newPriceInput" value="${currentPrice}" min="0"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason for Price Change *</label>
+      <textarea class="form-input" id="priceReasonInput" rows="3" placeholder="e.g. Supplier increased cost, promotion, etc…" style="resize:vertical"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="confirmPriceChange(${productId},'${productName}',${currentPrice})">💾 Save New Price</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function confirmPriceChange(productId, productName, oldPrice){
+  const newPrice=+document.getElementById('newPriceInput').value||0;
+  const reason=document.getElementById('priceReasonInput')?.value?.trim();
+  if(newPrice<=0){toast('Enter a valid price','error');return;}
+  if(!reason){toast('Please enter a reason for the price change','error');return;}
+  const prods=DB.get('products')||[];
+  const idx=prods.findIndex(p=>p.id===productId);
+  if(idx<0){toast('Product not found','error');return;}
+  prods[idx].sellPrice=newPrice;
+  DB.set('products',prods);
+  auditAction('PRICE',`Changed price of "${productName}" from ${fmtRWF(oldPrice)} to ${fmtRWF(newPrice)}. Reason: ${reason}`);
+  addNotification(`💲 Price change: "${productName}" ${fmtRWF(oldPrice)} → ${fmtRWF(newPrice)} by ${session.fullName}. Reason: ${reason}`,'warning','💲');
+  closeModal();
+  toast(`✅ Price updated to ${fmtRWF(newPrice)}`);
+  loadProducts();
+}
+
+// ═══════════════════════════════════════════════════════════
+// USER ACCESS INFO POPUP
+// ═══════════════════════════════════════════════════════════
+function showUserAccessInfo(){
+  if(session.role==='Owner'){showPage('settings');return;}
+  const perms=DB.get('mgrPermissions')||getDefaultPerms();
+  const roleIcon=session.role==='Manager'?'📋':'🍺';
+  const accessList=session.role==='Manager'?[
+    {label:'View Reports & Charts',ok:perms.canViewReports},
+    {label:'Edit Stock',ok:perms.canEditStock},
+    {label:'Manage Products',ok:perms.canEditProducts},
+    {label:'View Employees',ok:perms.canViewEmployees},
+    {label:'View Audit Log',ok:perms.canViewAudit},
+    {label:'Access Settings',ok:false},
+    {label:'Approve Voids directly',ok:false},
+    {label:'Delete Kitchen Revenue directly',ok:false},
+  ]:[
+    {label:'Record Sales',ok:true},
+    {label:'Quick Sale',ok:true},
+    {label:'View Own Sales History',ok:true},
+    {label:'View Dashboard (limited)',ok:true},
+    {label:'View Reports',ok:false},
+    {label:'Edit Stock',ok:false},
+    {label:'Access Settings',ok:false},
+    {label:'View Employees',ok:false},
+  ];
+  document.getElementById('modalContent').innerHTML=`
+    <h3>${roleIcon} ${session.fullName}</h3>
+    <p style="font-size:12px;color:var(--muted);margin:4px 0 20px">Role: <strong>${session.role}</strong> — Your access permissions</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${accessList.map(a=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r-sm);background:${a.ok?'var(--green-lt)':'var(--red-lt)'}">
+          <span style="font-size:16px">${a.ok?'✅':'❌'}</span>
+          <span style="font-size:13px;font-weight:600;color:${a.ok?'var(--green)':'var(--red)'}">${a.label}</span>
+        </div>`).join('')}
+    </div>
+    ${session.role==='Manager'?'<p style="font-size:11px;color:var(--muted);margin-top:16px">Permissions are managed by the Owner in Settings.</p>':''}`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.notif-panel')&&!e.target.closest('.btn-icon'))
+    document.getElementById('notifPanel').style.display='none';
+});
+document.getElementById('modalOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('modalOverlay'))closeModal();
+});
+
+// ═══════════════════════════════════════════════════════════
+// MOBILE SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════════════
+function toggleSidebar(){
+  const sb=document.querySelector('.sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('show');
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+// Close sidebar when a nav item is clicked on mobile
+document.querySelectorAll('.nav-item,.nav-item-logout').forEach(el=>{
+  el.addEventListener('click',()=>{
+    if(window.innerWidth<=768) closeSidebar();
+  });
+});
+
+initDB();
+document.getElementById('pageDate').textContent=new Date().toLocaleDateString('en-RW',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+setInterval(checkLowStock,60000);
+setInterval(runPeriodicFraudCheck,300000); // fraud check every 5 min
+</script>
+</body>
+</html>
